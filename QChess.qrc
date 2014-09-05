@@ -1,0 +1,15 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>images/board.png</file>
+    <file>images/advisor.png</file>
+    <file>images/bishop.png</file>
+    <file>images/cannon.png</file>
+    <file>images/done.png</file>
+    <file>images/king.png</file>
+    <file>images/knight.png</file>
+    <file>images/pawn.png</file>
+    <file>images/rook.png</file>
+    <file>images/over.png</file>
+    <file>images/select.png</file>
+</qresource>
+</RCC>
