@@ -33,39 +33,43 @@ class ChessTable(object):
         self.history = []
 
         self.running = False
+    
+    def set_players(self, players):
+        self.players = players
         
-    def new_game(self, players, fen_str = None) :
+        self.players[RED].side = RED
+        self.players[BLACK].side = BLACK
+        
+    def new_game(self, fen_str = None) :
                 
         self.board.init_board(fen_str)
                 
-        self.players = players
-
-        self.players[0].side = RED
-        self.players[1].side = BLACK
-        
         self.history = []
                 
     def start_game(self):
+        
         self.history = []
         self.running = True     
-        self.players[0].start_game()
-        self.players[1].start_game()
         
-        self.players[0].ready_to_move()
+        self.players[RED].start_game()
+        self.players[BLACK].start_game()
+        
+        self.players[self.board.move_side].ready_to_move()
         
     def stop_game(self):
+        
         self.running = False    
-        self.players[0].stop_game()
-        self.players[1].stop_game()
+        self.players[RED].stop_game()
+        self.players[BLACK].stop_game()
     
     def undo_move(self):
         
-        if len( self.history) == 0:
+        if len(self.history) == 0:
             return
             
-        last_move =  self.history.pop()
+        last_move = self.history.pop()
         
-        self.board.init_board(last_move[0])
+        self.board.init_board(last_move[1])
             
         self.players[self.board.move_side].ready_to_move()    
     

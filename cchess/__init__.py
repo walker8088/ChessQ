@@ -6,3 +6,4 @@ from chesstable import *
 from chessplayer import *
 from engine import *
 from finalbook import *
+from chessbook import  *

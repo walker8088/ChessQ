@@ -22,33 +22,15 @@ import sys, time
 from PyQt4 import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui  import *
-from QChess_rc import *
 
 from cchess import  *
 
-#-----------------------------------------------------#
+from QChess_rc import *
+from QChessman import *
 
-image_path = ':images/'
-chessman_image = ['king.png',
-                  'advisor.png',
-                  'bishop.png',
-                  'knight.png',
-                  'rook.png',
-                  'cannon.png',
-                  'pawn.png']
-                  
 BOARD_SIZE = (BOARD_WIDTH, BOARD_HEIGHT) = (530, 586)
 BORDER, SPACE = 15, 56
                   
-#-----------------------------------------------------#
-
-class QChessman(Chessman):
-    def __init__(self, parent, kind, color, pos, pc):
-        super(QChessman,self).__init__(parent, kind, color, pos, pc)        
-        self.image = QPixmap()
-        self.image.load(image_path + chessman_image[kind]) #.convert_alpha()
-
-
 #-----------------------------------------------------#
 
 class QChessboard(Chessboard, QWidget):
@@ -64,7 +46,8 @@ class QChessboard(Chessboard, QWidget):
         self.hook_move = [None,  None]
         #self.last_move = None
         self.move_side = None
-        self.last_selected = ()
+        self.last_selected = None
+        
         self.done = []
         
         self.move_steps_show = []
@@ -83,17 +66,16 @@ class QChessboard(Chessboard, QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.moveShowEvent)
         
-    def init_board(self, fen_str):
+    def init_board(self, fen_str = None):
         Chessboard.init_board(self,  fen_str)
-        
-        #self.last_move = None
-        self.last_selected = ()
+
+        self.last_selected = None
         
         self.update()
         
-    def on_create_chessman(self, kind, color, pos, pc):     
+    def on_create_chessman(self, kind, color, pos):     
         
-        return QChessman(self, kind, color, pos, pc)
+        return QChessman(self, kind, color, pos)
         
         
     def make_step_move(self, p_from, p_to):
@@ -113,7 +95,7 @@ class QChessboard(Chessboard, QWidget):
         self.update()
         
         #self.last_move = p_to
-        self.last_selected = ()
+        self.last_selected = None
     
     def logic_to_board(self,  x,  y):
         
@@ -234,7 +216,7 @@ class QChessboard(Chessboard, QWidget):
                 #self.last_move = new_man        
             else:
                 #以前没选中，现在选中的是对方的棋子，不动作
-                if len(self.last_selected) == 0:
+                if not self.last_selected :
                     return
                 
                 #可能是吃子，交由player自己管理
@@ -243,7 +225,7 @@ class QChessboard(Chessboard, QWidget):
                     
         else :
             #空击,如果已经有选过，则可能是走子
-            if (len(self.last_selected) > 0) and  self.hook_move[self.move_side] :
+            if self.last_selected and  self.hook_move[self.move_side] :
                 self.hook_move[self.move_side](self.last_selected, (x,y))
                         
         self.update()

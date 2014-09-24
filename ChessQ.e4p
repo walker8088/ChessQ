@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project ChessQ -->
-<!-- Saved: 2014-09-05, 10:33:18 -->
+<!-- Saved: 2014-09-06, 00:29:31 -->
 <!-- Copyright (C) 2014 walker li, walker8088@gmail.com -->
 <Project version="4.6">
   <Language>en</Language>
@@ -21,12 +21,14 @@
     <Source>cchess/engine.py</Source>
     <Source>cchess/finalbook.py</Source>
     <Source>cchess/__init__.py</Source>
-    <Source>GameMaster.py</Source>
     <Source>cchess/chessbook.py</Source>
     <Source>cchess/chesstree.py</Source>
-    <Source>QChessBoard.py</Source>
     <Source>QChessWidgets.py</Source>
     <Source>QChess_rc.py</Source>
+    <Source>QChessboardEditDlg.py</Source>
+    <Source>QChessman.py</Source>
+    <Source>QChessboard.py</Source>
+    <Source>QChessboardEditor.py</Source>
   </Sources>
   <Forms>
   </Forms>
@@ -37,7 +39,6 @@
   <Interfaces>
   </Interfaces>
   <Others>
-    <Other>licences.ZH_CN.txt</Other>
   </Others>
   <MainScript>ChessQ.py</MainScript>
   <Vcs>

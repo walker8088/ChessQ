@@ -23,143 +23,22 @@ from PyQt4.QtGui  import *
 
 #-----------------------------------------------------#
 
-class TreeItem(object):
-    def __init__(self, data, parent=None):
-        self.parentItem = parent
-        self.itemData = data
-        self.childItems = []
-
-    def appendChild(self, item):
-        self.childItems.append(item)
-
-    def child(self, row):
-        return self.childItems[row]
-
-    def childCount(self):
-        return len(self.childItems)
-
-    def data(self, column):
-        try:
-            return self.itemData[column]
-        except IndexError:
-            return None
-
-    def parent(self):
-        return self.parentItem
-
-    def row(self):
-        if self.parentItem:
-            return self.parentItem.childItems.index(self)
-        return 0
-
-
-class TreeModel(QtCore.QAbstractItemModel):
-    def __init__(self):
-        super(TreeModel, self).__init__(parent = None)
-
-        self.rootItem = TreeItem((u"序号", u"步骤", u"注释"))
-        
-        #self.setupModelData(data.split('\n'), self.rootItem)
-    def append_move(self, move_str):
-        
-        childItem = TreeItem((move_str, ""), self.rootItem)
-        
-        self.rootItem.appendChild(childItem)
-        row = childItem.row()
-        print row
-        index = self.createIndex(row, 1, childItem)
-        
-        self.dataChanged.emit(index, index)
-            
-    def columnCount(self, parent):
-        return 3
-        
-    def data(self, index, role):
-        if not index.isValid():
-            return None
-
-        if role != QtCore.Qt.DisplayRole:
-            return None
-
-        item = index.internalPointer()
-        
-        col = index.column()
-        
-        if col == 0:
-            return str(0)
-        else:    
-            return item.data(col-1)
-
-    def flags(self, index):
-        if not index.isValid():
-            return QtCore.Qt.NoItemFlags
-
-        return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-
-    def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-            return self.rootItem.data(section)
-
-        return None
-
-    def index(self, row, column, parent):
-        if not self.hasIndex(row, column, parent):
-            return QtCore.QModelIndex()
-
-        if not parent.isValid():
-            parentItem = self.rootItem
-        else:
-            parentItem = parent.internalPointer()
-
-        childItem = parentItem.child(row)
-        if childItem:
-            return self.createIndex(row, column, childItem)
-        else:
-            return QtCore.QModelIndex()
-
-    def parent(self, index):
-        if not index.isValid():
-            return QtCore.QModelIndex()
-
-        childItem = index.internalPointer()
-        parentItem = childItem.parent()
-
-        if parentItem == self.rootItem:
-            return QtCore.QModelIndex()
-
-        return self.createIndex(parentItem.row(), 0, parentItem)
-
-    def rowCount(self, parent):
-        if parent.column() > 0:
-            return 0
-
-        if not parent.isValid():
-            parentItem = self.rootItem
-        else:
-            parentItem = parent.internalPointer()
-
-        return parentItem.childCount()
-
-#-----------------------------------------------------#
-
 class QChessBookWidget(QDockWidget):
     def __init__(self, parent):
         super(QChessBookWidget, self).__init__(u"棋谱",  parent)
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
         
-        #self.model = TreeModel()
-        
-        #self.view = QTreeView(self)
-        #self.view.setModel(self.model)
+        self.parent = parent
         
         self.view = QTreeWidget()
         
-        self.view.setColumnCount(3)
-        self.view.setHeaderLabels([u"序号", u"走子", u"备注"])
+        self.view.setColumnCount(1)
+        self.view.setHeaderLabels([u"序号", u"行棋"])
         self.view.setColumnWidth(0,40)
         self.view.setColumnWidth(1,80)
-        self.view.setColumnWidth(2,280)
- 
+        #self.view.setColumnWidth(2,280)
+        self.view.itemClicked.connect(self.onSelectStep)
+        
         self.setWidget(self.view)
     
     def sizeHint(self):
@@ -167,7 +46,11 @@ class QChessBookWidget(QDockWidget):
     
     def minimumSizeHint(self):
         return QSize(350, 500)   
-
+    
+    def onSelectStep(self, item, column):
+        step = item.data(0, Qt.UserRole)
+        self.parent.board.init_board(step.fen_after_move)
+        
     def append_move(self, move_step):   
         item = QTreeWidgetItem(self.view)
         
@@ -177,11 +60,39 @@ class QChessBookWidget(QDockWidget):
             item.setText(0, str((step_no + 1) / 2))
         
         item.setText(1, move_step[4])
-        #item.setData(move_step)
+        #item.setData(move_step, Qt.UserRole)
+        
+    def append_move_step(self, step):   
+        item = QTreeWidgetItem(self.view)
+        
+        if step.step_no % 2 == 1:    
+            item.setText(0, str((step.step_no + 1) / 2))
+        
+        item.setText(1, step.move_str)
+        item.setData(0, Qt.UserRole, step)
         
     def clear(self):    
         self.view.clear()
+    
+    def undo_move(self):
+        #pass
+        count = self.view.topLevelItemCount()
         
+        print count  
+        
+        if count == 0:
+            return 
+        
+        #item = self.view.topLevelItem(count - 1)
+        #print item
+        
+        self.view.takeTopLevelItem(count -1) 
+    
+    def show_book(self, book):    
+        self.clear()
+        for item in book.steps.head_node.children:
+            self.append_move_step(item)
+            
 #-----------------------------------------------------#
         
 class QChessEngineWidget(QDockWidget):

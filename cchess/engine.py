@@ -68,7 +68,7 @@ class UcciEngine(Thread):
         self.ids = []
         self.options = []
         
-        self.search_depth = 5
+        self.search_depth = 7
         
     def run(self) :
         
@@ -86,7 +86,7 @@ class UcciEngine(Thread):
                 
     def __handle_engine_out_line(self, output) :
                 
-        print "<<<", output
+        #print "<<<", output
         
         outputs_list = output.split()
         resp_id = outputs_list[0]
@@ -161,7 +161,8 @@ class UcciEngine(Thread):
         self.move_info_queue = Queue()
 
     def send_cmd(self, cmd_str) :
-        print ">>>", cmd_str
+        
+        #print ">>>", cmd_str
         
         try :
             self.pin.write(cmd_str + "\n")

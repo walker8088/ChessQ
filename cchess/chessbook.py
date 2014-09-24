@@ -17,7 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from xml.etree import ElementTree as et
+
 from chesstree import *
+from chessboard import *
 
 #-----------------------------------------------------#
 
@@ -25,9 +28,54 @@ class ChessBook(dict):
     def __init__(self):
         self.infos = {}
         self.result = None
+        self.init_fen = None
         self.steps = StepsTree()
         
-    def write_to_pgn_file(self,  file_name):
+    def load_from_cbf_file(self, file_name):
+        
+        def decode_move(move_str):
+            p_from = (int(move_str[0]), int(move_str[1])) 
+            p_to = (int(move_str[3]), int(move_str[4])) 
+            
+            return (p_from, p_to)
+            
+        tree = et.parse(file_name)
+        root = tree.getroot()
+        
+        head = root.find("Head")
+        for node in head.getchildren() :
+            if node.tag == "FEN":
+                self.init_fen = node.text
+            print node.tag
+        
+        board = Chessboard()
+        board.init_board(self.init_fen)
+        
+        move_list = root.find("MoveList").getchildren()
+        
+        head_node = move_list[0]
+        if head_node.text :
+            self.steps.set_head(head_node.text)
+            print head_node.text
+            
+        for node in move_list[1:] :
+            
+            p_from, p_to = decode_move(node.attrib["value"])
+            
+            if not board.can_make_move(p_from, p_to):
+                raise Exception("Move Error")
+            
+            fen_before_move = board.get_fen() 
+            chinese_move_str = board.std_move_to_chinese_move(p_from, p_to) 
+            board.make_step_move(p_from, p_to) 
+            fen_after_move = board.get_fen()
+            
+            self.steps.step_append(fen_before_move, fen_after_move, (p_from, p_to), chinese_move_str, node.text)
+            board.turn_side()
+            
+            #print p_from, p_to, chinese_move_str
+            
+    def write_to_pgn_file(self, file_name):
         pass
         
     def load_from_pgn_file(self,  file_name):     
@@ -117,4 +165,6 @@ class ChessBook(dict):
 ################################################
 if __name__ == '__main__':
     book = ChessBook()
-    book.load_from_pgn_file("test/test.PGN")
+    #book.load_from_pgn_file("test/test.PGN")
+    book.load_from_cbf_file("test/test.cbf")
+    

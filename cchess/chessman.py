@@ -99,7 +99,7 @@ def get_char(kind, color):
 
 class Chessman(object):
     
-    def __init__(self, board, kind, color, pos, pc):
+    def __init__(self, board, kind, color, pos):
         
         self.board = board
         
@@ -107,7 +107,6 @@ class Chessman(object):
         self.color = color
         
         self.x, self.y = pos
-        self.pc = pc
         
         self.name = get_show_name(kind, color)
         
@@ -189,7 +188,7 @@ class Chessman(object):
             
         return ((self.x,  self.y), new_pos)
     
-    def can_place(self, x, y):
+    def can_place_to(self, x, y):
         if not self.__can_place_check_default(x, y):
             return False
             

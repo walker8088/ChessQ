@@ -42,12 +42,15 @@ class LabelNode(object):
     
 #-----------------------------------------------------#
 
-class StepNode(object)::
-    def __init__(self, parent, fen_str,  move,  move_str,  comment = None):
+class StepNode(object):
+    def __init__(self, parent, fen_before_move, fen_after_move, move, move_str, comment = None):
         self.parent = parent
         
+        self.fen_before_move = fen_before_move
+        self.fen_after_move = fen_after_move
+        
         self.move = move
-        self.move_name = move_name
+        self.move_str = move_str
         self.comment = comment
         
         self.step_no = 0
@@ -68,12 +71,15 @@ class StepNode(object)::
 class StepsTree:
 
     def __init__(self):
-        self.head_node = LabelNode(u"=== ĺźĺ§ ===")
+        self.head_node = LabelNode(u"=== 开始 ===")
     
-    def step_append(self, fen_str, move, move_str, comment = None) :
-        node = StepNode(self.head_node, move, fen_str, move, move_str, comment)
+    def set_head(self, head_str):
+        self.head_node = LabelNode(head_str)
+    
+    def step_append(self, fen_before_move, fen_after_move, move, move_str, comment = None) :
+        node = StepNode(self.head_node, fen_before_move, fen_after_move, move, move_str, comment)
         
-        self.head_node.append(node)
+        self.head_node.add_child(node)
         
         return node
     
@@ -82,9 +88,9 @@ class StepsTree:
         
         parent.add_child(l_node)
         
-    def step_insert(self, parent, fen_str, move, move_str, comment = None) :
+    def step_insert(self, parent, fen_before_move, fen_after_move, move, move_str, comment = None) :
         
-        node = StepNode(parent, move, move_str, comment)
+        node = StepNode(parent, fen_before_move, fen_after_move, move, move_str, comment)
         
         parent.add_child(node)
         

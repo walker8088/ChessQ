@@ -30,8 +30,10 @@ from PyQt4.QtGui  import *
 
 from cchess import *
 
-from QChessBoard import *
+from QChessboard import *
 from QChessWidgets import *
+
+from QChessboardEditDlg import *
 
 APP_NAME = u"ChessQ 中国象棋"
 
@@ -63,7 +65,21 @@ class MainWindow(QMainWindow):
             self.engine = None
             
         #self.finalbook = FinalBook(u"epds/橘中秘_残局.EPD")
-        self.finalbook = FinalBook(u"challengers/基本杀法.EPD")
+        #self.finalbook = FinalBook(u"challengers/基本杀法.EPD")
+        
+        self.table = ChessTable(self, self.board)
+        
+        self.players = [ UiChessPlayer(self.table), 
+                         UiChessPlayer(self.table)
+                         ]
+    
+        self.table.set_players(self.players)
+        
+        if self.eRedBox.isChecked(): 
+            self.players[RED].bind_engine(self.engine)
+        
+        if self.eBlackBox.isChecked(): 
+            self.players[BLACK].bind_engine(self.engine)
         
         self.timer = QTimer()
         self.timer.start(50)
@@ -76,6 +92,7 @@ class MainWindow(QMainWindow):
         
         self.readSettings()
         
+        self.onInitBoard()
         
     def center(self):
         screen = QDesktopWidget().screenGeometry()
@@ -97,83 +114,46 @@ class MainWindow(QMainWindow):
             self.table.stop_game()
         
         self.writeSettings()
-        #event.accept()
-    
-    def onFlipBoardChanged(self, state):
+      
+    def onLoadBook(self):
+        self.book = ChessBook()
+        self.book.load_from_cbf_file("2.cbf")
+        self.bookView.show_book(self.book)
         
-        self.board.setFlipBoard(state)
+    def onInitBoard(self):
+        self.board.init_board()
         
-    def onRedBoxChanged(self, state):
+    def onEditBoard(self):
         
-        if not self.table.players[0] :
-            return
+        dlg = QChessboardEditDialog(self)
+        new_fen = dlg.editBoard(self.board.get_fen())
         
-        if state == Qt.Checked:
-            self.table.players[0].bind_engine(self.engine)
-        else :
-            self.table.players[0].bind_engine(None)
-            
-    def onBlackBoxChanged(self, state):
+        self.board.init_board(new_fen)
         
-        if not self.table.players[1] :
-            return
-            
-        if state == Qt.Checked :
-            self.table.players[1].bind_engine(self.engine)
-        else :
-            self.table.players[1].bind_engine(None)
-        
-    def onInfoBoxChanged(self, state):
+    def onSelectBoard(self):
         pass
         
-    def open(self):
-        pass
-
-    def save(self):
-        pass
-        
-    def saveAs(self):
-        fileName = QFileDialog.getSaveFileName(self, "Save As",
-                self.curFile)
-        if not fileName:
-            return False
-
-        return self.saveFile(fileName)
-
-    def about(self):
-        QMessageBox.about(self, u"关于ChessQ",
-                ""
-                "")
-                
-    def onNewGame(self):
-        
-        self.setWindowTitle(APP_NAME)
-        
-        player1 = UiChessPlayer(self.table)
-        if self.eRedBox.isChecked(): 
-            player1.bind_engine(self.engine)
-        
-        player2 = UiChessPlayer(self.table)
-        if self.eBlackBox.isChecked(): 
-            player2.bind_engine(self.engine)
-        
-        self.bookView.clear()
-                
-        self.table.new_game((player1, player2))
+    def onStartGame(self):
         self.table.start_game()
+    
+    def onUndoMove(self) :
+        self.table.undo_move()
+        self.bookView.undo_move()
+    
+    def onStopGame(self) :
+        self.table.stop_game()
         
-    def onFinalChallenge(self) :
+    def onLoadEngine(self):
         
-        
-        curr_book = self.finalbook.curr_book()
-        
-        player1 = UiChessPlayer(self.table)
         if self.eRedBox.isChecked(): 
-            player1.bind_engine(self.engine)
-            
-        player2 = UiChessPlayer(self.table)
+            self.players[RED].bind_engine(self.engine)
+        
         if self.eBlackBox.isChecked(): 
-            player2.bind_engine(self.engine)
+            self.players[BLACK].bind_engine(self.engine)
+                
+    def onFinalChallenge(self) :
+    
+        curr_book = self.finalbook.curr_book()
         
         self.setWindowTitle(APP_NAME + curr_book[0])
         self.bookView.clear()
@@ -182,60 +162,84 @@ class MainWindow(QMainWindow):
         self.table.start_game()
         
     def notify_move_from_table(self, move_step) :
-        
-        #self.table.undo_move()
         self.bookView.append_move(move_step)
        
     def notify_unmove_from_table(self, move_step) :
         pass
         
-    def onUndoMove(self) :
-        self.table.undo_move()
     
-    def onEndGame(self) :
-        self.table.stop_game()
+    def onFlipBoardChanged(self, state):
         
-    def onLoadEngine(self):
+        self.board.setFlipBoard(state)
+        
+    def onRedBoxChanged(self, state):
+        
+        if state == Qt.Checked:
+            self.table.players[RED].bind_engine(self.engine)
+        else :
+            self.table.players[RED].bind_engine(None)
+            
+    def onBlackBoxChanged(self, state):
+            
+        if state == Qt.Checked :
+            self.table.players[BLACK].bind_engine(self.engine)
+        else :
+            self.table.players[BLACK].bind_engine(None)
+        
+    def onInfoBoxChanged(self, state):
         pass
+        
+
+    def about(self):
+        QMessageBox.about(self, u"关于ChessQ",
+                ""
+                "")
         
     def on_game_over(self, over_side):
         
+        self.table.stop_game()
+        
         if over_side == BLACK:
-            #QMessageBox.warning(self,  APP_NAME, u"挑战成功!")
-            self.finalbook.next_book()
-            print u"挑战成功", self.finalbook.index
+            result = u"棋局结束，黑方被将死！"
+            #self.finalbook.next_book()
+            #print u"挑战成功", self.finalbook.index
         else:
+            result = u"棋局结束，红方被将死！"
+        
+        QMessageBox.warning(self,  APP_NAME, result)
+            
             #QMessageBox.warning(self,  APP_NAME, u"挑战失败!")
-            self.finalbook.next_book()
+            #self.finalbook.next_book()
             
-            print u"挑战失败", self.finalbook.index
+            #print u"挑战失败", self.finalbook.index
             
-        self.onFinalChallenge()
+        #self.onFinalChallenge()
         
     def createActions(self):
-        self.newGameAct = QAction(u"新对局", self, 
-                statusTip=u"新对局", triggered=self.onNewGame)
+        self.loadBookAct = QAction(u"加载棋谱", self, 
+                statusTip=u"新对局", triggered=self.onLoadBook)
         
-        self.finalChallengeAct = QAction(u"残局挑战", self, 
-                statusTip=u"残局挑战", triggered=self.onFinalChallenge)
+        self.initBoardAct = QAction(u"初始盘面", self, 
+                statusTip=u"新对局", triggered=self.onInitBoard)
+        
+        self.editBoardAct = QAction(u"编辑盘面", self, 
+                statusTip=u"局面编辑", triggered=self.onEditBoard)
+        
+        self.selectBoardAct = QAction(u"残局选择", self, 
+                statusTip=u"残局选择", triggered=self.onSelectBoard)
+        
+        self.startGameAct = QAction(u"开始", self, 
+                statusTip=u"开始对局", triggered=self.onStartGame)
         
         self.undoMoveAct = QAction(u"悔棋", self, 
                 statusTip=u"悔棋", triggered=self.onUndoMove)
         
-        self.endGameAct = QAction(u"结束对局", self, 
-                statusTip=u"结束对局", triggered=self.onEndGame)
+        self.stopGameAct = QAction(u"结束", self, 
+                statusTip=u"结束对局", triggered=self.onStopGame)
         
         self.loadEngineAct = QAction(u"加载引擎", self, 
                 statusTip=u"加载象棋引擎", triggered=self.onLoadEngine)
         
-        self.openAct = QAction(QIcon(':/images/open.png'),
-                "&Open...", self, shortcut=QKeySequence.Open,
-                statusTip="Open an existing file", triggered=self.open)
-
-        self.saveAct = QAction(QIcon(':/images/save.png'),
-                "&Save", self, shortcut=QKeySequence.Save,
-                statusTip="Save the document to disk", triggered=self.save)
-
         self.exitAct = QAction("E&xit", self, shortcut="Ctrl+Q",
                 statusTip="Exit the application",
                 triggered=qApp.closeAllWindows)
@@ -246,9 +250,6 @@ class MainWindow(QMainWindow):
 
     def createMenus(self):
         self.fileMenu = self.menuBar().addMenu("&File")
-        self.fileMenu.addAction(self.openAct)
-        self.fileMenu.addAction(self.saveAct)
-        #self.fileMenu.addAction(self.saveAsAct)
         self.fileMenu.addSeparator()
         #self.fileMenu.addAction(self.closeAct)
         self.fileMenu.addAction(self.exitAct)
@@ -259,16 +260,22 @@ class MainWindow(QMainWindow):
         self.helpMenu.addAction(self.aboutAct)
 
     def createToolBars(self):
-        self.gameToolbar = self.addToolBar("Game")
-        self.gameToolbar.addAction(self.newGameAct)
-        self.gameToolbar.addAction(self.finalChallengeAct) 
-        self.gameToolbar.addAction(self.undoMoveAct)
-        self.gameToolbar.addAction(self.endGameAct)
         
         self.boardToolbar = self.addToolBar("Board")
+        self.boardToolbar.addAction(self.loadBookAct)
+        self.boardToolbar.addAction(self.initBoardAct)
+        self.boardToolbar.addAction(self.editBoardAct) 
+        self.boardToolbar.addAction(self.selectBoardAct)
+        
         self.flipBoardBox = QCheckBox(u"反转棋盘")
         self.flipBoardBox.stateChanged.connect(self.onFlipBoardChanged)
+        
         self.boardToolbar.addWidget(self.flipBoardBox)
+        
+        self.gameToolbar = self.addToolBar("Game")
+        self.gameToolbar.addAction(self.startGameAct)
+        self.gameToolbar.addAction(self.undoMoveAct)
+        self.gameToolbar.addAction(self.stopGameAct)
         
         self.engineToolbar = self.addToolBar("Engine")
         self.engineToolbar.addAction(self.loadEngineAct)
@@ -278,6 +285,7 @@ class MainWindow(QMainWindow):
         self.eRedBox.stateChanged.connect(self.onRedBoxChanged)
         
         self.eBlackBox = QCheckBox(u"引擎执黑")
+        self.eBlackBox.setChecked(True);
         self.eBlackBox.stateChanged.connect(self.onBlackBoxChanged)
         
         self.eInfoBox = QCheckBox(u"引擎分析")
@@ -296,7 +304,6 @@ class MainWindow(QMainWindow):
     def createMainWidgets(self):
         
         self.board = QChessboard()
-        self.table = ChessTable(self, self.board)
         
         self.setCentralWidget(self.board)
       
