@@ -30,11 +30,15 @@ from QChessman import *
 
 BOARD_SIZE = (BOARD_WIDTH, BOARD_HEIGHT) = (530, 586)
 BORDER, SPACE = 15, 56
-                  
+
 #-----------------------------------------------------#
 
 class QChessboard(Chessboard, QWidget):
-    
+
+    """
+        棋盘对象
+    """
+
     def __init__(self):
     
         QWidget.__init__(self)
