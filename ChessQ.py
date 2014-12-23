@@ -35,6 +35,8 @@ from QChessWidgets import *
 
 from QChessboardEditDlg import *
 
+#-----------------------------------------------------#    
+
 APP_NAME = u"ChessQ 中国象棋"
 
 #-----------------------------------------------------#       
@@ -116,8 +118,20 @@ class MainWindow(QMainWindow):
         self.writeSettings()
       
     def onLoadBook(self):
-        self.book = ChessBook()
-        self.book.load_from_cbf_file("2.cbf")
+        
+        file_name = QtGui.QFileDialog.getOpenFileName(self, u"打开棋谱文件", '')
+        
+        if file_name == None :
+                return
+        
+        self.book = load_book(file_name)      
+        
+        if self.book == None :
+                return
+                
+        #self.book = ChessBook()
+        #self.book.load_from_cbf_file("2.cbf")
+        
         self.bookView.show_book(self.book)
         
     def onInitBoard(self):
@@ -311,8 +325,8 @@ class MainWindow(QMainWindow):
         self.engineView = QChessEngineWidget(self)
         
         self.addDockWidget(Qt.RightDockWidgetArea, self.bookView)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.engineView)
-        self.tabifyDockWidget(self.bookView, self.engineView);
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.engineView)
+        #self.tabifyDockWidget(self.bookView, self.engineView);
         self.bookView.raise_()
         
     def createStatusBar(self):
@@ -334,7 +348,6 @@ class MainWindow(QMainWindow):
         settings.setValue('pos', self.pos())
         settings.setValue('size', self.size())
 
-
 #-----------------------------------------------------#
 
 class CChessApplication(QApplication):
@@ -344,9 +357,9 @@ class CChessApplication(QApplication):
                 
                 self.mainWin = MainWindow(self)
                 self.mainWin.show()
-                
-        
+                      
 #-----------------------------------------------------#
+
 if __name__ == '__main__':
     app = CChessApplication()
     sys.exit(app.exec_())

@@ -32,7 +32,7 @@ class Chessboard(object):
     def clear(self):
         
         self._board = {}
-        self.move_side = RED
+        self.move_side = None
         
     def at_pos(self, x, y):
         
@@ -122,29 +122,7 @@ class Chessboard(object):
         else:
             #多子选一移动指示
             mans = __get_mans_of_kind(man_kind, self.move_side) 
-            
-        
-    def __get_mans_of_kind(self, kind, color):
-        
-        mans = []
-        for key in self._board.keys():    
-            man = self._board[key]
-            if man.kind == kind and man.color == color:
-                mans.append(man)
-        
-        return mans 
-    
-    def __get_mans_at_vline(self, kind, color, x):
-        
-        mans = __get_mans_of_kind(kind, color)
-        
-        new_mans = []
-        for man in mans:    
-            if man.x == x:
-                new_mans.append(man)
-        
-        return new_mans 
-        
+                
     def std_move_to_chinese_move(self, p_from, p_to):
         
         man = self._board[p_from]
@@ -326,3 +304,26 @@ class Chessboard(object):
                 count  += 1
         
         return count
+
+    def __get_mans_of_kind(self, kind, color):
+        
+        mans = []
+        for key in self._board.keys():    
+            man = self._board[key]
+            if man.kind == kind and man.color == color:
+                mans.append(man)
+        
+        return mans 
+    
+    def __get_mans_at_vline(self, kind, color, x):
+        
+        mans = __get_mans_of_kind(kind, color)
+        
+        new_mans = []
+        for man in mans:    
+            if man.x == x:
+                new_mans.append(man)
+        
+        return new_mans 
+        
+    

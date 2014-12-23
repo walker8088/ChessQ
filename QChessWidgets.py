@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from cchess import *
+
 from PyQt4 import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui  import *
@@ -30,17 +32,29 @@ class QChessBookWidget(QDockWidget):
         
         self.parent = parent
         
-        self.view = QTreeWidget()
+        self.step_view = QTreeWidget()
+        self.step_view.setColumnCount(1)
+        self.step_view.setHeaderLabels([u"序号", u"行棋", u"注释",  u"变招"])
+        self.step_view.setColumnWidth(0,30)
+        self.step_view.setColumnWidth(1,80)
+        self.step_view.setColumnWidth(2,30)
+        self.step_view.setColumnWidth(3,120)
         
-        self.view.setColumnCount(1)
-        self.view.setHeaderLabels([u"序号", u"行棋"])
-        self.view.setColumnWidth(0,40)
-        self.view.setColumnWidth(1,80)
-        #self.view.setColumnWidth(2,280)
-        self.view.itemClicked.connect(self.onSelectStep)
+        self.step_view.itemClicked.connect(self.onSelectStep)
         
-        self.setWidget(self.view)
-    
+        self.comment_view = QTextEdit()
+        self.comment_view.readOnly = True
+        
+        splitter = QSplitter(self)
+        splitter.setOrientation(Qt.Vertical)
+        
+        splitter.addWidget(self.step_view)
+        splitter.addWidget(self.comment_view )
+        splitter.setStretchFactor(0,70)
+        splitter.setStretchFactor(1,30)
+        
+        self.setWidget(splitter)
+        
     def sizeHint(self):
         return QSize(350, 500)    
     
@@ -48,11 +62,21 @@ class QChessBookWidget(QDockWidget):
         return QSize(350, 500)   
     
     def onSelectStep(self, item, column):
-        step = item.data(0, Qt.UserRole)
-        self.parent.board.init_board(step.fen_after_move)
         
-    def append_move(self, move_step):   
-        item = QTreeWidgetItem(self.view)
+        step_node = item.data(0, Qt.UserRole)
+        
+        if isinstance(step_node,StepNode):
+                self.parent.board.init_board(step_node.fen_str_after_step)
+        else :
+                self.parent.board.init_board(step_node.fen_str)
+        
+        if step_node.comment != None:
+                self.comment_view.setText(step_node.comment)
+        else :
+                self.comment_view.setText("")
+         
+    def __append_move(self, move_step):   
+        item = QTreeWidgetItem(self.step_view)
         
         step_no = move_step[0]
         
@@ -62,36 +86,50 @@ class QChessBookWidget(QDockWidget):
         item.setText(1, move_step[4])
         #item.setData(move_step, Qt.UserRole)
         
-    def append_move_step(self, step):   
-        item = QTreeWidgetItem(self.view)
+    def append_move_step(self, step_node, index):   
+        item = QTreeWidgetItem(self.step_view)
         
-        if step.step_no % 2 == 1:    
-            item.setText(0, str((step.step_no + 1) / 2))
+        if index % 2 == 1:    
+            item.setText(0, str((index + 1) / 2))
         
-        item.setText(1, step.move_str)
-        item.setData(0, Qt.UserRole, step)
+        item.setText(1, step_node.name)
+        item.setData(0, Qt.UserRole, step_node)
         
+        if step_node.comment != None:
+                item.setText(2, "*")
+                #self.comment_view.setText(step_node.comment)
+                
     def clear(self):    
-        self.view.clear()
+        self.step_view.clear()
     
     def undo_move(self):
         #pass
-        count = self.view.topLevelItemCount()
-        
-        print count  
+        count = self.step_view.topLevelItemCount()
         
         if count == 0:
             return 
         
-        #item = self.view.topLevelItem(count - 1)
+        #item = self.step_view.topLevelItem(count - 1)
         #print item
         
-        self.view.takeTopLevelItem(count -1) 
+        self.step_view.takeTopLevelItem(count -1) 
     
     def show_book(self, book):    
+        
         self.clear()
-        for item in book.steps.head_node.children:
-            self.append_move_step(item)
+        
+        step_node = book["steps"]
+        
+        index = 0 
+        while step_node != None :
+            self.append_move_step(step_node, index)
+            
+            if step_node.child_count() == 1 :
+                step_node = step_node.children[0]
+            else :
+                step_node = None
+            
+            index += 1
             
 #-----------------------------------------------------#
         
@@ -100,15 +138,15 @@ class QChessEngineWidget(QDockWidget):
         super(QChessEngineWidget, self).__init__(u"引擎分析",  parent)
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
 
-        self.view = QListWidget(self)
+        self.step_view = QListWidget(self)
         
-        self.setWidget(self.view)
+        self.setWidget(self.step_view)
         
     def append_info(self, info):   
-        self.view.addItem(info)
+        self.step_view.addItem(info)
         
     def clear(self):    
-        self.view.clear()
+        self.step_view.clear()
     
     def sizeHint(self):
         return QSize(350, 500)    

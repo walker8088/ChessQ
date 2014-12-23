@@ -22,14 +22,6 @@ import sys
 from common import *
 
 #-----------------------------------------------------#
-KING, ADVISOR, BISHOP, KNIGHT, ROOK, CANNON, PAWN, NONE = range(8)
-
-h_level_index = ((u"九",u"八",u"七",u"六",u"五",u"四",u"三",u"二",u"一"), 
-                (u"１",u"２",u"３",u"４",u"５",u"６",u"７",u"８",u"９") )
-
-v_change_index = ( (u"错", ""u"一", u"二", u"三", u"四", u"五", u"六", u"七", u"八", u"九"), 
-                (u"误", ""u"１", u"２", u"３", u"４", u"５", u"６", u"７", u"８", u"９") )
-
 
 advisor_pos = (((3, 9), (5, 9), (4, 8), (3, 7), (5, 7)), 
                ((3, 0), (5, 0), (4, 1), (3, 2), (5, 2)))
@@ -49,16 +41,9 @@ rook_dir = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 cannon_dir = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 pawn_dir = [[(0, -1), (-1, 0), (1, 0)], [(0, 1), (-1, 0), (1, 0)]]
 """
-
-#-----------------------------------------------------#
-#KING, ADVISOR, BISHOP, KNIGHT, ROOK, CANNON, PAWN
-chessman_show_names = ( (u"帅",u"仕",u"相",u"马",u"车",u"炮",u"兵"),
-                        (u"将",u"士",u"象",u"马",u"车",u"炮",u"卒") )
-                    
-def get_show_name(kind, color) :
-        return chessman_show_names[color][kind]
         
 #-----------------------------------------------------#
+
 def get_kind(fen_ch):
     if fen_ch in ['k', 'K']:
         return KING
@@ -385,7 +370,6 @@ class Chessman(object):
         over_river_step = (((-1, 0), (1, 0), (0, -1)), 
                            ((-1, 0), (1, 0), (0, 1)))
                            
-                
         step = (x - self.x, y - self.y)
         
         over_river = self.__pawn_over_river()

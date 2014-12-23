@@ -17,24 +17,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
+from common import *
+
 #-----------------------------------------------------#
 
 class LabelNode(object):
-    def __init__(self, name, parent = None, step_no = 0):
+    def __init__(self, name, fen_str = None,  comment = None):
         
+        self.parent = None
         self.name = name
-        
-        self.parent = parent
-        self.step_no = step_no
-        
+        self.fen_str = fen_str
+        self.comment = comment
         self.children = []
     
     def add_child(self, node):
-        
         node.parent = self
-        node.step_no = self.step_no + self.child_count() + 1
         self.children.append(node)
-        
         return node    
     
     def child_count(self):
@@ -42,57 +40,62 @@ class LabelNode(object):
     
 #-----------------------------------------------------#
 
-class StepNode(object):
-    def __init__(self, parent, fen_before_move, fen_after_move, move, move_str, comment = None):
-        self.parent = parent
+class StepNode(LabelNode):
+    def __init__(self, name, fen_str, fen_str_after_step, move, comment = None):
+        super(StepNode, self).__init__(name, fen_str, comment)
         
-        self.fen_before_move = fen_before_move
-        self.fen_after_move = fen_after_move
-        
+        self.fen_str_after_step = fen_str_after_step
         self.move = move
-        self.move_str = move_str
-        self.comment = comment
-        
-        self.step_no = 0
-        
-        self.children = []
 
-    def add_child(self, node):
+#-----------------------------------------------------# 
+       
+def dump_info(book)  :   
         
-        node.parent = self
-        node.step_no = self.step_no + self.child_count() + 1
-        self.children.append(node)
+        #for key in book:
+        #        if key != "steps":
+        #                print key, book[key]
         
-        return node    
-    
-    def child_count(self):
-        return len(self.children)
+        print
+        print  u"格式：", book["source"]
+        print  u"版本：", book["version"]
+        print  u"类型：", book_type_str[book["book_type"]]
+        print  u"标题：", book["title"]
+        print  u"比赛：", book["match"]
+        print  u"红方：", book["players"][0]
+        print  u"黑方：", book["players"][1]
+        print  u"结果：", result_str[book["result"]]
+        print  u"解说：", book["narrator"]
+        print  u"作者：", book["author"]
+        print
         
-class StepsTree:
+#-----------------------------------------------------#
 
-    def __init__(self):
-        self.head_node = LabelNode(u"=== 开始 ===")
-    
-    def set_head(self, head_str):
-        self.head_node = LabelNode(head_str)
-    
-    def step_append(self, fen_before_move, fen_after_move, move, move_str, comment = None) :
-        node = StepNode(self.head_node, fen_before_move, fen_after_move, move, move_str, comment)
-        
-        self.head_node.add_child(node)
-        
-        return node
-    
-    def add_branch(self, parent, step_no,  name = ''):
-        l_node = LabelNode(name)
-        
-        parent.add_child(l_node)
-        
-    def step_insert(self, parent, fen_before_move, fen_after_move, move, move_str, comment = None) :
-        
-        node = StepNode(parent, fen_before_move, fen_after_move, move, move_str, comment)
-        
-        parent.add_child(node)
-        
-        return node
+def dump_steps(step_node) :        
+        count = 0
+        break_line = False
+        while step_node != None:
+                if  (count % 2) == 1:
+                        print "%3d." % ((count+1)  / 2),
+                elif  break_line :
+                        print "%3d.  ......   " % ((count+1)  / 2),
+                        break_line = False
+                
+                print step_node.name, " ", 
+               
+                if  (count % 2) == 0:
+                        print 
+                        
+                if step_node.comment != None :
+                        if  (count % 2) == 1:
+                                break_line = True
+                                print 
+                        print 
+                        print  step_node.comment
+                
+                if step_node.child_count() > 0:
+                        step_node = step_node.children[0]
+                else :
+                        step_node = None
+                
+                count += 1
         

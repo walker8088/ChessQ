@@ -210,7 +210,7 @@ class QChessboard(Chessboard, QWidget):
         if (x, y) in self._board.keys():
             #选中某个棋子，可以多次选当前可走方的棋子
             new_man = self._board[(x, y)]                        
-            if new_man.color == self.move_side:
+            if (self.move_side != None) and (new_man.color == self.move_side) :
                 #选中的是可走方的棋子
                 self.last_selected = (x, y)
                 #self.last_move = new_man        
