@@ -141,10 +141,40 @@ class QChessEngineWidget(QDockWidget):
         self.step_view = QListWidget(self)
         
         self.setWidget(self.step_view)
+    
+    def  handle_engine_msg(self, engine) :
         
+        if engine.move_info_queue.qsize() == 0:
+                return 
+                
+        msg = engine.move_info_queue.get_nowait()
+        
+        if msg  == None :
+                return       
+        
+        if msg[0] == BOARD_RESET :
+                self.step_view.clear()
+                
+        elif msg[0] == INFO_MOVE :
+                move_info = msg[1]       
+                board = Chessboard()
+                board.init_board(move_info["fen_str"])
+                total_move_str = u"深度 " + move_info['depth'] + u" 评分 " + move_info['score']  
+                for (move_from, move_to) in move_info["moves"] :
+                        if board.can_make_move(move_from, move_to):
+                                total_move_str += " " + board.std_move_to_chinese_move(move_from, move_to)
+                                board.make_step_move(move_from, move_to)
+                                board.turn_side()
+                                #fen_after_move = board.get_fen()
+                                #step_node = StepNode(move_str, fen_before_move,  fen_after_move, (move_from, move_to), comments)              
+                        else :
+                                total_move_str  =  "error on move"
+                                break
+                self.step_view.addItem(total_move_str)
+                   
     def append_info(self, info):   
         self.step_view.addItem(info)
-        
+          
     def clear(self):    
         self.step_view.clear()
     

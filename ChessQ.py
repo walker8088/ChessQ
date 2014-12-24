@@ -61,8 +61,8 @@ class MainWindow(QMainWindow):
         #self.engine_path = "engines/bitstronger/bitstronger"
         #self.engine_path = "engines/harmless/harmless"
         
-        self.engine = UcciEngine(self.engine_path)
-        if not self.engine.load():
+        self.engine = UcciEngine()
+        if not self.engine.load(self.engine_path):
             QMessageBox.warning(self, APP_NAME, u"引擎加载失败.")
             self.engine = None
             
@@ -105,6 +105,9 @@ class MainWindow(QMainWindow):
         if self.table.running:
             self.table.handle_player_msg()
         
+        if self.engine :
+                self.engineView.handle_engine_msg(self.engine)
+        
     def closeEvent(self, event):
         self.timer.stop()
         
@@ -121,18 +124,10 @@ class MainWindow(QMainWindow):
         
         file_name = QtGui.QFileDialog.getOpenFileName(self, u"打开棋谱文件", '')
         
-        if file_name == None :
-                return
-        
-        self.book = load_book(file_name)      
-        
-        if self.book == None :
-                return
-                
-        #self.book = ChessBook()
-        #self.book.load_from_cbf_file("2.cbf")
-        
-        self.bookView.show_book(self.book)
+        if file_name :
+                self.book = load_book(file_name)      
+                if self.book  :
+                        self.bookView.show_book(self.book)
         
     def onInitBoard(self):
         self.board.init_board()
@@ -176,7 +171,8 @@ class MainWindow(QMainWindow):
         self.table.start_game()
         
     def notify_move_from_table(self, move_step) :
-        self.bookView.append_move(move_step)
+        pass
+        #self.bookView.append_move(move_step)
        
     def notify_unmove_from_table(self, move_step) :
         pass
@@ -324,8 +320,8 @@ class MainWindow(QMainWindow):
         self.bookView = QChessBookWidget(self)
         self.engineView = QChessEngineWidget(self)
         
-        self.addDockWidget(Qt.RightDockWidgetArea, self.bookView)
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.engineView)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.bookView)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.engineView)
         #self.tabifyDockWidget(self.bookView, self.engineView);
         self.bookView.raise_()
         

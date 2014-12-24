@@ -85,14 +85,17 @@ class UiChessPlayer(ChessPlayer) :
             self.move_queue.put((MOVE, (p_from, p_to)))
                     
     def get_next_move(self) :   
+    
+        # UI Player 绑定到Engine的时候，需要从engine取执行指令        
         if self.engine:
             move = self.engine.get_next_move()
             if move:
                 return move    
-            
+        #
         try:
             move = self.move_queue.get_nowait()
         except Empty:
             return None
         
         return move
+        

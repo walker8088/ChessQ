@@ -66,7 +66,9 @@ class ChessTable(object):
         
         if len(self.history) == 0:
             return
-            
+        
+        #需要返回前两步才对   
+        last_move = self.history.pop()
         last_move = self.history.pop()
         
         self.board.init_board(last_move[1])
@@ -85,10 +87,12 @@ class ChessTable(object):
     '''        
             
     def handle_player_msg(self) :
+        
         if not self.running:    
             return
             
         move_result = self.players[self.board.move_side].get_next_move() 
+        
         if not move_result:
             return
         

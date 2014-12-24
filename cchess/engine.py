@@ -28,7 +28,7 @@ from common import *
 #-----------------------------------------------------#
 
 #Engine status   
-(BOOTING, READY, WAITING, INFO_MOVE, MOVE, DEAD, UNKNOWN) = range(7)
+(BOOTING, READY, WAITING, INFO_MOVE, MOVE, DEAD, UNKNOWN, BOARD_RESET) = range(8)
 
 def move_to_str(p_from, p_to):
     
@@ -57,9 +57,8 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 #-----------------------------------------------------#
 
 class UcciEngine(Thread):
-    def __init__(self, engine_name):
+    def __init__(self):
         super(UcciEngine, self).__init__()
-        self.engine_name = engine_name
         
         self.daemon  = True
         self.running = False
@@ -67,6 +66,10 @@ class UcciEngine(Thread):
         self.engine_status = None
         self.ids = []
         self.options = []
+        
+        self.last_fen_str = None
+        self.move_queue = Queue()
+        self.move_info_queue = Queue()
         
         self.search_depth = 7
         
@@ -116,13 +119,24 @@ class UcciEngine(Thread):
             elif resp_id == 'info':
                 #info depth 6 score 4 pv b0c2 b9c7 c3c4 h9i7 c2d4 h7e7
                 if outputs_list[1] == "depth":
-                    move_str = output[5:]
-                    #move_arr = str_to_move(move_str)
-                    self.move_info_queue.put((INFO_MOVE, move_str))
-                    #print  move_str
+                    move_info = {}    
+                    info_list = output[5:].split()
+                    
+                    move_info["fen_str"] = self.last_fen_str
+                    move_info[info_list[0]] =  info_list[1] #depth 6
+                    move_info[info_list[2]] =  info_list[3] #score 4
+                    
+                    move_steps = []
+                    for step_str in info_list[5:] :
+                        move= str_to_move(step_str)
+                        move_steps.append(move)    
+                    move_info["moves"] = move_steps    
+                    
+                    self.move_info_queue.put_nowait((INFO_MOVE, move_info))
+                    
+    def load(self, engine_path):
     
-    def load(self):
-        
+        self.engine_name = engine_path
         try:
             self.pipe = Popen(self.engine_name, stdin=PIPE, stdout=PIPE)#, close_fds=ON_POSIX)
         except OSError:
@@ -131,9 +145,6 @@ class UcciEngine(Thread):
         time.sleep(0.5)
         
         (self.pin, self.pout) = (self.pipe.stdin,self.pipe.stdout)
-        
-        self.move_queue = Queue()
-        self.move_info_queue = Queue()
         
         self.enging_status = BOOTING
         self.send_cmd("ucci")
@@ -154,12 +165,13 @@ class UcciEngine(Thread):
         
         if ban_move :
                 self.send_cmd('banmoves ' + ban_move)
-                
+        
+        self.last_fen_str = fen_str
+        self.move_queue = Queue()
+        self.move_info_queue.put_nowait((BOARD_RESET, self.last_fen_str[:]))
+        
         self.send_cmd('go depth ' + str(self.search_depth))
         
-        self.move_queue = Queue()
-        self.move_info_queue = Queue()
-
     def send_cmd(self, cmd_str) :
         
         #print ">>>", cmd_str

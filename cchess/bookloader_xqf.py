@@ -25,11 +25,6 @@ from chesstree import *
 
 #-----------------------------------------------------#
 
-man_kinds = (ROOK,  KNIGHT,  BISHOP,  ADVISOR, KING, ADVISOR,  BISHOP,  KNIGHT, ROOK , \
-                        CANNON, CANNON, PAWN,  PAWN, PAWN,  PAWN, PAWN)
-
-#-----------------------------------------------------#
-
 def xqf_pos_2_board_pos(man_pos) :
         return   ( int(man_pos / 10), 9 - (man_pos % 10) )
         
@@ -187,23 +182,17 @@ class XQFLoader(object):
 			tmpMan[i] = (tmpMan[i] - keys.KeyXY) & 0xFF
 			if (tmpMan[i] > 89) :
 				tmpMan[i] = 0xFF
-			#else:
-			#print i, tmpMan[i]
 				
 		return tmpMan
 	
 	def decode_buff(self, keys, buff) : 
-		#print len(buff)
-		de_buff =bytearray([0 for x in range(len(buff))])
 		
-		nPos = 0x400
-		
-                #KeyByte := F32Keys[(iPos mod 32) + 1];
-                #P^ := P^ - KeyByte;
-    
+                nPos = 0x400
+                de_buff =bytearray(buff)
+                
                 for i in range(len(buff)) :
                         KeyByte = keys.F32Keys[(nPos + i) % 32]
-			de_buff[i] = (ord(buff[i]) - KeyByte) & 0xFF
+			de_buff[i] = (de_buff[i] - KeyByte) & 0xFF
 		
                 return str(de_buff)
 		
@@ -323,11 +312,8 @@ class XQFLoader(object):
                         chess_mans = self.init_chess_board(ucBoard)
                         step_base_buff =XQFBookBuff(contents[0x400:]) 
                 elif (version == 0x12) :
-                        #raise Exception("version not supported")
-                        
                         keys = self.init_decrypt_key(crypt_keys)
                         chess_mans = self.init_chess_board(ucBoard, keys)	
-                        
                         step_base_buff = XQFBookBuff(self.decode_buff(keys, contents[0x400:])) 
 		else :
                         raise Exception("version erorr")
@@ -335,19 +321,23 @@ class XQFLoader(object):
                 chess_board = Chessboard()
                 chess_board.move_side = RED
                 
+                chessman_pos_kinds = \
+                        (
+                                ROOK,  KNIGHT,  BISHOP,  ADVISOR, KING, ADVISOR,  BISHOP,  KNIGHT, ROOK , \
+                                CANNON, CANNON, \
+                                PAWN,  PAWN, PAWN,  PAWN, PAWN
+                        )
+                        
                 for side in range(2):
                         for man_index in range(16):
                                 man_pos = chess_mans[side * 16 + man_index]
                                 if man_pos == 0xFF:
                                         continue
                                 pos = xqf_pos_2_board_pos(man_pos)       
-                                chess_board.create_chessman(man_kinds[man_index], side, pos ) 
-                
-                print chess_board.get_fen()
+                                chess_board.create_chessman(chessman_pos_kinds[man_index], side, pos ) 
                  
                 step_node = self.read_steps(step_base_buff,  version,  chess_board,  keys)
-		
-                book["steps"] = step_node
+		book["steps"] = step_node
 		
                 return book
                 
