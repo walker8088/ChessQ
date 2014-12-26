@@ -1,0 +1,2 @@
+
+from QChessMain import *

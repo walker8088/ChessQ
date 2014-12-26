@@ -36,11 +36,13 @@ BORDER, SPACE = 15, 56
 
 class QChessboardEditWidget(Chessboard, QWidget):
     
-    def __init__(self):
+    def __init__(self, parent):
     
         QWidget.__init__(self)
         
         Chessboard.__init__(self)
+        
+        self.parent = parent
         
         self.last_selected = None
         self._new_pos = None
@@ -306,6 +308,8 @@ class QChessboardEditWidget(Chessboard, QWidget):
                     self._do_move(self.last_selected, (x, y))    
                 
                 self.last_selected = None
+                
+                self.parent.update_fen()
                 
         self.update()
                 

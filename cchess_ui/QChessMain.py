@@ -346,7 +346,7 @@ class MainWindow(QMainWindow):
 
 #-----------------------------------------------------#
 
-class CChessApplication(QApplication):
+class QChessApplication(QApplication):
         
         def __init__(self) :
                 super(QApplication,self).__init__([])
@@ -355,7 +355,3 @@ class CChessApplication(QApplication):
                 self.mainWin.show()
                       
 #-----------------------------------------------------#
-
-if __name__ == '__main__':
-    app = CChessApplication()
-    sys.exit(app.exec_())

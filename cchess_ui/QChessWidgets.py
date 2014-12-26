@@ -159,7 +159,7 @@ class QChessEngineWidget(QDockWidget):
                 move_info = msg[1]       
                 board = Chessboard()
                 board.init_board(move_info["fen_str"])
-                total_move_str = u"深度 " + move_info['depth'] + u" 评分 " + move_info['score']  
+                total_move_str = move_info['score']  
                 for (move_from, move_to) in move_info["moves"] :
                         if board.can_make_move(move_from, move_to):
                                 total_move_str += " " + board.std_move_to_chinese_move(move_from, move_to)
@@ -179,7 +179,7 @@ class QChessEngineWidget(QDockWidget):
         self.step_view.clear()
     
     def sizeHint(self):
-        return QSize(350, 500)    
+        return QSize(450, 500)    
     
     def minimumSizeHint(self):
-        return QSize(350, 500)   
+        return QSize(450, 500)   

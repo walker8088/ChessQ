@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project ChessQ -->
-<!-- Saved: 2014-09-06, 00:29:31 -->
+<!-- Saved: 2014-12-26, 14:52:58 -->
 <!-- Copyright (C) 2014 walker li, walker8088@gmail.com -->
 <Project version="4.6">
   <Language>en</Language>
@@ -12,7 +12,6 @@
   <Author>walker li</Author>
   <Email>walker8088@gmail.com</Email>
   <Sources>
-    <Source>ChessQ.py</Source>
     <Source>cchess/chessboard.py</Source>
     <Source>cchess/chessman.py</Source>
     <Source>cchess/chessplayer.py</Source>
@@ -23,12 +22,16 @@
     <Source>cchess/__init__.py</Source>
     <Source>cchess/chessbook.py</Source>
     <Source>cchess/chesstree.py</Source>
-    <Source>QChessWidgets.py</Source>
-    <Source>QChess_rc.py</Source>
-    <Source>QChessboardEditDlg.py</Source>
-    <Source>QChessman.py</Source>
-    <Source>QChessboard.py</Source>
-    <Source>QChessboardEditor.py</Source>
+    <Source>cchess_ui/GameMaster.py</Source>
+    <Source>cchess_ui/QChessboard.py</Source>
+    <Source>cchess_ui/QChessboardEditDlg.py</Source>
+    <Source>cchess_ui/QChessboardEditor.py</Source>
+    <Source>cchess_ui/QChessMain.py</Source>
+    <Source>cchess_ui/QChessman.py</Source>
+    <Source>cchess_ui/QChessWidgets.py</Source>
+    <Source>cchess_ui/QChess_rc.py</Source>
+    <Source>cchess_ui/__init__.py</Source>
+    <Source>ChessQ.pyw</Source>
   </Sources>
   <Forms>
   </Forms>

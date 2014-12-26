@@ -36,7 +36,7 @@ class QChessboardEditDialog(QDialog):
         
         vbox = QVBoxLayout()
         
-        self.boardEdit = QChessboardEditWidget()
+        self.boardEdit = QChessboardEditWidget(self)
         vbox.addWidget(self.boardEdit)
         
         self.fenEdit = QtGui.QLineEdit()
@@ -71,6 +71,9 @@ class QChessboardEditDialog(QDialog):
         self.boardEdit.init_board()
         self.fenEdit.setText(self.boardEdit.get_fen())
         
+    def update_fen(self) :
+        self.fenEdit.setText(self.boardEdit.get_fen())
+                
     def onClearBoard(self):
         self.boardEdit.clear()
         self.fenEdit.setText(self.boardEdit.get_fen())
