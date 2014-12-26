@@ -1,2 +1,3 @@
 *.pyc
-engines/
+*.exe
+*.dll
