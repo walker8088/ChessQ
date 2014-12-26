@@ -25,29 +25,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "position.h"
 #include "preeval.h"
 
-/* ElephantEyeԴ����ʹ�õ��������Ǻ�Լ����
+/* ElephantEye源程序使用的匈牙利记号约定：
  *
- * sq: �������(��������0��255������"pregen.cpp")
- * pc: �������(��������0��47������"position.cpp")
- * pt: �����������(��������0��6������"position.cpp")
- * mv: �ŷ�(��������0��65535������"position.cpp")
- * sd: ���ӷ�(������0�����췽��1�����ڷ�)
- * vl: �����ֵ(��������"-MATE_VALUE"��"MATE_VALUE"������"position.cpp")
- * (ע����������Ǻſ���uc��dw�ȴ��������ļǺ����ʹ��)
- * pos: ����(PositionStruct���ͣ�����"position.h")
- * sms: λ�к�λ�е��ŷ�����Ԥ�ýṹ(����"pregen.h")
- * smv: λ�к�λ�е��ŷ��ж�Ԥ�ýṹ(����"pregen.h")
+ * sq: 格子序号(整数，从0到255，参阅"pregen.cpp")
+ * pc: 棋子序号(整数，从0到47，参阅"position.cpp")
+ * pt: 棋子类型序号(整数，从0到6，参阅"position.cpp")
+ * mv: 着法(整数，从0到65535，参阅"position.cpp")
+ * sd: 走子方(整数，0代表红方，1代表黑方)
+ * vl: 局面价值(整数，从"-MATE_VALUE"到"MATE_VALUE"，参阅"position.cpp")
+ * (注：以上五个记号可与uc、dw等代表整数的记号配合使用)
+ * pos: 局面(PositionStruct类型，参阅"position.h")
+ * sms: 位行和位列的着法生成预置结构(参阅"pregen.h")
+ * smv: 位行和位列的着法判断预置结构(参阅"pregen.h")
  */
 
-/* ����λ�ü�ֵ��
- * ElephantEye������λ�ü�ֵ���Ծ������۵ĵ������˺ܴ�����ã��ڲ��ա������񵰡�����Ļ����ϣ��������¸Ķ���
- * 1. �����������ֺ�λ����ط������һ�������ڿ������㣻
- * 2. һ��·�ı�(��)��Ѳ��λ�÷�ֵ������5�֣��Լ���äĿ���߱�(��)�������
- * 3. ���ӱ�(��)(���߳���)���10�֣��Լ��ٹ��ӱ�(��)äĿ����(ʿ)��(��)�������
- * 4. һ��·���ںᳵ��λ�÷�ֵ������5�֣��Լ�������(ʿ)ʱ����������ĺᳵ�������
+/* 子力位置价值表
+ * ElephantEye的子力位置价值表对局面评价的导向起了很大的作用，在参照“梦入神蛋”程序的基础上，作了如下改动：
+ * 1. 把棋力基本分和位置相关分组合在一起，以利于快速运算；
+ * 2. 一九路的兵(卒)在巡河位置分值减少了5分，以减少盲目进边兵(卒)的情况；
+ * 3. 过河兵(卒)(底线除外)多加10分，以减少过河兵(卒)盲目换仕(士)相(象)的情况；
+ * 4. 一九路车在横车的位置分值减少了5分，以减少上仕(士)时还起无意义的横车的情况。
  */
 
-// 1. ���о֡��н��������˧(��)�ͱ�(��)�����ա������񵰡�
+// 1. 开中局、有进攻机会的帅(将)和兵(卒)，参照“梦入神蛋”
 static const uint8_t cucvlKingPawnMidgameAttacking[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -67,7 +67,7 @@ static const uint8_t cucvlKingPawnMidgameAttacking[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 2. ���о֡�û�н��������˧(��)�ͱ�(��)
+// 2. 开中局、没有进攻机会的帅(将)和兵(卒)
 static const uint8_t cucvlKingPawnMidgameAttackless[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -87,7 +87,7 @@ static const uint8_t cucvlKingPawnMidgameAttackless[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 3. �о֡��н��������˧(��)�ͱ�(��)
+// 3. 残局、有进攻机会的帅(将)和兵(卒)
 static const uint8_t cucvlKingPawnEndgameAttacking[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -107,7 +107,7 @@ static const uint8_t cucvlKingPawnEndgameAttacking[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 4. �о֡�û�н��������˧(��)�ͱ�(��)
+// 4. 残局、没有进攻机会的帅(将)和兵(卒)
 static const uint8_t cucvlKingPawnEndgameAttackless[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -127,7 +127,7 @@ static const uint8_t cucvlKingPawnEndgameAttackless[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 5. û����в����(ʿ)����(��)
+// 5. 没受威胁的仕(士)和相(象)
 static const uint8_t cucvlAdvisorBishopThreatless[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -147,7 +147,7 @@ static const uint8_t cucvlAdvisorBishopThreatless[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 5'. ������ģ�û����в����(ʿ)����(��)
+// 5'. 可升变的，没受威胁的仕(士)和相(象)
 static const uint8_t cucvlAdvisorBishopPromotionThreatless[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -167,7 +167,7 @@ static const uint8_t cucvlAdvisorBishopPromotionThreatless[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 6. �ܵ���в����(ʿ)����(��)�����ա������񵰡�
+// 6. 受到威胁的仕(士)和相(象)，参照“梦入神蛋”
 static const uint8_t cucvlAdvisorBishopThreatened[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -187,7 +187,7 @@ static const uint8_t cucvlAdvisorBishopThreatened[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 7. ���оֵ��������ա������񵰡�
+// 7. 开中局的马，参照“梦入神蛋”
 static const uint8_t cucvlKnightMidgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -207,7 +207,7 @@ static const uint8_t cucvlKnightMidgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 8. �оֵ���
+// 8. 残局的马
 static const uint8_t cucvlKnightEndgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -227,7 +227,7 @@ static const uint8_t cucvlKnightEndgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 9. ���оֵĳ������ա������񵰡�
+// 9. 开中局的车，参照“梦入神蛋”
 static const uint8_t cucvlRookMidgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -247,7 +247,7 @@ static const uint8_t cucvlRookMidgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 10. �оֵĳ�
+// 10. 残局的车
 static const uint8_t cucvlRookEndgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -267,7 +267,7 @@ static const uint8_t cucvlRookEndgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 11. ���оֵ��ڣ����ա������񵰡�
+// 11. 开中局的炮，参照“梦入神蛋”
 static const uint8_t cucvlCannonMidgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -287,7 +287,7 @@ static const uint8_t cucvlCannonMidgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// 12. �оֵ���
+// 12. 残局的炮
 static const uint8_t cucvlCannonEndgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -307,27 +307,27 @@ static const uint8_t cucvlCannonEndgame[256] = {
   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
 };
 
-// ��ͷ�ڵ���в��ֵ��ָ���ǶԺ췽��˵���к�(���ڷ�Ҫ��15ȥ��)�������Ͽ�ͷ��λ��Խ����вԽ�󡣽���о�ʱ����ֵҪ��Ӧ���١�
+// 空头炮的威胁分值，指标是对红方来说的行号(即黑方要用15去减)，大体上空头炮位置越高威胁越大。进入残局时，该值要相应减少。
 static const int cvlHollowThreat[16] = {
    0,  0,  0,  0,  0,  0, 60, 65, 70, 75, 80, 80, 80,  0,  0,  0
 };
 
-// ��������������в��ֵ��ָ��ͬ�ϣ������ϸ߶�Խ����вԽ��û��������ʱ��ȡ�ķ�֮һ������о�ʱ��ȡֵ�ƺ���Ӧ�仯��
+// 炮镇窝心马的威胁分值，指标同上，大体上高度越低威胁越大，没有窝心马时可取四分之一。进入残局时，取值似乎不应变化。
 static const int cvlCentralThreat[16] = {
    0,  0,  0,  0,  0,  0, 50, 45, 40, 35, 30, 30, 30,  0,  0,  0
 };
 
-// �����ڵ���в��ֵ��ָ�����кţ�������Խ����������вԽ����в����ʱ����ֵҪ��Ӧ���١�
+// 沉底炮的威胁分值，指标是列号，大体上越靠近边线威胁越大。威胁减少时，该值要相应减少。
 static const int cvlBottomThreat[16] = {
    0,  0,  0, 40, 30,  0,  0,  0,  0,  0, 30, 40,  0,  0,  0,  0
 };
 
-// ��ģ��ֻ�漰��"PositionStruct"�е�"ucsqPieces"��"dwBitPiece/wBitPiece"��"vlWhite"��"vlBlack"�ĸ���Ա����ʡ��ǰ���"this->"
+// 本模块只涉及到"PositionStruct"中的"ucsqPieces"、"dwBitPiece/wBitPiece"、"vlWhite"和"vlBlack"四个成员，故省略前面的"this->"
 
-/* ����Ԥ���۾��ǳ�ʼ������Ԥ��������(PreEval��PreEvalEx)�Ĺ��̡�
- * ElephantEye�ľ���Ԥ������Ҫ�������������棺
- * 1. �жϾ��ƴ��ڿ��оֻ��ǲоֽ׶Σ�
- * 2. �ж�ÿһ���Ƿ�ԶԷ��γ���в��
+/* 局面预评价就是初始化局面预评价数据(PreEval和PreEvalEx)的过程。
+ * ElephantEye的局面预评价主要分以下两个方面：
+ * 1. 判断局势处于开中局还是残局阶段；
+ * 2. 判断每一方是否对对方形成威胁。
  */
 
 const int ROOK_MIDGAME_VALUE = 6;
@@ -349,17 +349,17 @@ void PositionStruct::PreEvaluate(void) {
 
   if (!bInit) {
     bInit = true;
-    // ��ʼ��"PreEvalEx.cPopCnt16"���飬ֻ��Ҫ��ʼ��һ��
+    // 初始化"PreEvalEx.cPopCnt16"数组，只需要初始化一次
     for (i = 0; i < 65536; i ++) {
       PreEvalEx.cPopCnt16[i] = PopCnt16(i);
     }
   }
 
-  // �����жϾ��ƴ��ڿ��оֻ��ǲоֽ׶Σ������Ǽ���������ӵ����������ճ�=6������=3������=1��ӡ�
+  // 首先判断局势处于开中局还是残局阶段，方法是计算各种棋子的数量，按照车=6、马炮=3、其它=1相加。
   nMidgameValue = PopCnt32(this->dwBitPiece & BOTH_BITPIECE(ADVISOR_BITPIECE | BISHOP_BITPIECE | PAWN_BITPIECE)) * OTHER_MIDGAME_VALUE;
   nMidgameValue += PopCnt32(this->dwBitPiece & BOTH_BITPIECE(KNIGHT_BITPIECE | CANNON_BITPIECE)) * KNIGHT_CANNON_MIDGAME_VALUE;
   nMidgameValue += PopCnt32(this->dwBitPiece & BOTH_BITPIECE(ROOK_BITPIECE)) * ROOK_MIDGAME_VALUE;
-  // ʹ�ö��κ�������������ʱ����Ϊ�ӽ��о�
+  // 使用二次函数，子力很少时才认为接近残局
   nMidgameValue = (2 * TOTAL_MIDGAME_VALUE - nMidgameValue) * nMidgameValue / TOTAL_MIDGAME_VALUE;
   __ASSERT_BOUND(0, nMidgameValue, TOTAL_MIDGAME_VALUE);
   PreEval.vlAdvanced = (TOTAL_ADVANCED_VALUE * nMidgameValue + TOTAL_ADVANCED_VALUE / 2) / TOTAL_MIDGAME_VALUE;
@@ -385,7 +385,7 @@ void PositionStruct::PreEvaluate(void) {
     PreEvalEx.vlCentralThreat[i] = cvlCentralThreat[i];
   }
 
-  // Ȼ���жϸ����Ƿ��ڽ���״̬�������Ǽ�����ֹ������ӵ����������ճ���2�ڱ�1��ӡ�
+  // 然后判断各方是否处于进攻状态，方法是计算各种过河棋子的数量，按照车马2炮兵1相加。
   nWhiteAttacks = nBlackAttacks = 0;
   for (i = SIDE_TAG(0) + KNIGHT_FROM; i <= SIDE_TAG(0) + ROOK_TO; i ++) {
     if (this->ucsqPieces[i] != 0 && BLACK_HALF(this->ucsqPieces[i])) {
@@ -407,7 +407,7 @@ void PositionStruct::PreEvaluate(void) {
       nBlackAttacks ++;
     }
   }
-  // ��������������ȶԷ��࣬��ôÿ��һ������(����2������)��вֵ��2����вֵ��಻����8��
+  // 如果本方轻子数比对方多，那么每多一个轻子(车算2个轻子)威胁值加2。威胁值最多不超过8。
   nWhiteSimpleValue = PopCnt16(this->wBitPiece[0] & ROOK_BITPIECE) * 2 + PopCnt16(this->wBitPiece[0] & (KNIGHT_BITPIECE | CANNON_BITPIECE));
   nBlackSimpleValue = PopCnt16(this->wBitPiece[1] & ROOK_BITPIECE) * 2 + PopCnt16(this->wBitPiece[1] & (KNIGHT_BITPIECE | CANNON_BITPIECE));
   if (nWhiteSimpleValue > nBlackSimpleValue) {
@@ -440,7 +440,7 @@ void PositionStruct::PreEvaluate(void) {
     PreEvalEx.vlBlackBottomThreat[i] = cvlBottomThreat[i] * nWhiteAttacks / TOTAL_ATTACK_VALUE;
   }
 
-  // ���Ԥ�����Ƿ�Գ�
+  // 检查预评价是否对称
 #ifndef NDEBUG
   for (sq = 0; sq < 256; sq ++) {
     if (IN_BOARD(sq)) {
@@ -456,15 +456,15 @@ void PositionStruct::PreEvaluate(void) {
   }
 #endif
 
-  // ����������в���ٵ�����(ʿ)��(��)��ֵ
+  // 调整不受威胁方少掉的仕(士)相(象)分值
   this->vlWhite = ADVISOR_BISHOP_ATTACKLESS_VALUE * (TOTAL_ATTACK_VALUE - nBlackAttacks) / TOTAL_ATTACK_VALUE;
   this->vlBlack = ADVISOR_BISHOP_ATTACKLESS_VALUE * (TOTAL_ATTACK_VALUE - nWhiteAttacks) / TOTAL_ATTACK_VALUE;
-  // ����������䣬��ô������в����(ʿ)��(��)��ֵ������һ��
+  // 如果允许升变，那么不受威胁的仕(士)相(象)分值就少了一半
   if (PreEval.bPromotion) {
     this->vlWhite /= 2;
     this->vlBlack /= 2;
   }
-  // ������¼�������λ�÷�
+  // 最后重新计算子力位置分
   for (i = 16; i < 32; i ++) {
     sq = this->ucsqPieces[i];
     if (sq != 0) {

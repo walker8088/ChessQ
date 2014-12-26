@@ -156,7 +156,7 @@ const int8_t ccKnightPinTab[512] = {
 PreGenStruct PreGen;
 PreEvalStruct PreEval;
 
-// ÕâËÄ¸öÊı×éÓÃÀ´ÅĞ¶ÏÆå×ÓµÄ×ß×Ó·½Ïò£¬ÒÔÂíÎªÀı¾ÍÊÇ£ºsqDst = sqSrc + cnKnightMoveTab[i]
+// è¿™å››ä¸ªæ•°ç»„ç”¨æ¥åˆ¤æ–­æ£‹å­çš„èµ°å­æ–¹å‘ï¼Œä»¥é©¬ä¸ºä¾‹å°±æ˜¯ï¼šsqDst = sqSrc + cnKnightMoveTab[i]
 static const int cnKingMoveTab[4]    = {-0x10, -0x01, +0x01, +0x10};
 static const int cnAdvisorMoveTab[4] = {-0x11, -0x0f, +0x0f, +0x11};
 static const int cnBishopMoveTab[4]  = {-0x22, -0x1e, +0x1e, +0x22};
@@ -168,7 +168,7 @@ void PreGenInit(void) {
   SlideMoveStruct smv;
   SlideMaskStruct sms;
 
-  // Ê×ÏÈ³õÊ¼»¯Zobrist¼üÖµ±í
+  // é¦–å…ˆåˆå§‹åŒ–Zobristé”®å€¼è¡¨
   rc4.InitZero();
   PreGen.zobrPlayer.InitRC4(rc4);
   for (i = 0; i < 14; i ++) {
@@ -177,8 +177,8 @@ void PreGenInit(void) {
     }
   }
 
-  // È»ºó³õÊ¼»¯ÆÁ±ÎÎ»ĞĞºÍÆÁ±ÎÎ»ÁĞ
-  // ×¢£ºÎ»ĞĞºÍÎ»ÁĞ²»°üÀ¨ÆåÅÌÒÔÍâµÄÎ»£¬ËùÒÔ¾Í»áÆµ·±Ê¹ÓÃ"+/- RANK_TOP/FILE_LEFT"
+  // ç„¶ååˆå§‹åŒ–å±è”½ä½è¡Œå’Œå±è”½ä½åˆ—
+  // æ³¨ï¼šä½è¡Œå’Œä½åˆ—ä¸åŒ…æ‹¬æ£‹ç›˜ä»¥å¤–çš„ä½ï¼Œæ‰€ä»¥å°±ä¼šé¢‘ç¹ä½¿ç”¨"+/- RANK_TOP/FILE_LEFT"
   for (sqSrc = 0; sqSrc < 256; sqSrc ++) {
     if (IN_BOARD(sqSrc)) {
       PreGen.wBitRankMask[sqSrc] = 1 << (FILE_X(sqSrc) - FILE_LEFT);
@@ -189,16 +189,16 @@ void PreGenInit(void) {
     }
   }
 
-  // È»ºóÉú³É³µÅÚºáÏòµÄÔ¤ÖÃÊı×é(Êı×éµÄÓ¦ÓÃ²ÎÔÄ"pregen.h")
+  // ç„¶åç”Ÿæˆè½¦ç‚®æ¨ªå‘çš„é¢„ç½®æ•°ç»„(æ•°ç»„çš„åº”ç”¨å‚é˜…"pregen.h")
   for (i = 0; i < 9; i ++) {
     for (j = 0; j < 512; j ++) {
-      // ³õÊ¼»¯½èÖúÓÚ¡°Î»ĞĞ¡±µÄ³µºÍÅÚµÄ×Å·¨Ô¤Éú³ÉÊı×é£¬°üÀ¨ÒÔÏÂ¼¸¸ö²½Öè£º
-      // 1. ³õÊ¼»¯ÁÙÊ±±äÁ¿"SlideMoveTab"£¬¼ÙÉèÃ»ÓĞ×Å·¨£¬ÓÃÆğÊ¼¸ñÌî³ä
+      // åˆå§‹åŒ–å€ŸåŠ©äºâ€œä½è¡Œâ€çš„è½¦å’Œç‚®çš„ç€æ³•é¢„ç”Ÿæˆæ•°ç»„ï¼ŒåŒ…æ‹¬ä»¥ä¸‹å‡ ä¸ªæ­¥éª¤ï¼š
+      // 1. åˆå§‹åŒ–ä¸´æ—¶å˜é‡"SlideMoveTab"ï¼Œå‡è®¾æ²¡æœ‰ç€æ³•ï¼Œç”¨èµ·å§‹æ ¼å¡«å……
       smv.ucNonCap[0] = smv.ucNonCap[1] = smv.ucRookCap[0] = smv.ucRookCap[1] =
       smv.ucCannonCap[0] = smv.ucCannonCap[1] = smv.ucSuperCap[0] = smv.ucSuperCap[1] = i + FILE_LEFT;
       sms.wNonCap = sms.wRookCap = sms.wCannonCap = sms.wSuperCap = 0;
-      // ÌáÊ¾£º²ÎÔÄ"pregen.h"£¬...[0]±íÊ¾×î´óÒ»¸ñ£¬ÏòÓÒÒÆ¶¯ºÍÏÂÒÆ¶¯¶¼ÓÃ[0]£¬·´Ö®ÒàÈ»
-      // 2. ¿¼ÂÇÏòÓÒÒÆ¶¯µÄÄ¿±ê¸ñ£¬Ìî³ä...[0]£¬
+      // æç¤ºï¼šå‚é˜…"pregen.h"ï¼Œ...[0]è¡¨ç¤ºæœ€å¤§ä¸€æ ¼ï¼Œå‘å³ç§»åŠ¨å’Œä¸‹ç§»åŠ¨éƒ½ç”¨[0]ï¼Œåä¹‹äº¦ç„¶
+      // 2. è€ƒè™‘å‘å³ç§»åŠ¨çš„ç›®æ ‡æ ¼ï¼Œå¡«å……...[0]ï¼Œ
       for (k = i + 1; k <= 8; k ++) {
         if ((j & (1 << k)) != 0) {
           smv.ucRookCap[0] = FILE_DISP(k + FILE_LEFT);
@@ -222,7 +222,7 @@ void PreGenInit(void) {
           break;
         }
       }
-      // 3. ¿¼ÂÇÏò×óÒÆ¶¯µÄÄ¿±ê¸ñ£¬Ìî³ä...[1]
+      // 3. è€ƒè™‘å‘å·¦ç§»åŠ¨çš„ç›®æ ‡æ ¼ï¼Œå¡«å……...[1]
       for (k = i - 1; k >= 0; k --) {
         if ((j & (1 << k)) != 0) {
           smv.ucRookCap[1] = FILE_DISP(k + FILE_LEFT);
@@ -246,7 +246,7 @@ void PreGenInit(void) {
           break;
         }
       }
-      // 4. Îª"smv"ºÍ"sms"µÄÖµ×÷¶ÏÑÔ
+      // 4. ä¸º"smv"å’Œ"sms"çš„å€¼ä½œæ–­è¨€
       __ASSERT_BOUND_2(3, smv.ucNonCap[1], smv.ucNonCap[0], 11);
       __ASSERT_BOUND_2(3, smv.ucRookCap[1], smv.ucRookCap[0], 11);
       __ASSERT_BOUND_2(3, smv.ucCannonCap[1], smv.ucCannonCap[0], 11);
@@ -255,21 +255,21 @@ void PreGenInit(void) {
       __ASSERT_BITRANK(sms.wRookCap);
       __ASSERT_BITRANK(sms.wCannonCap);
       __ASSERT_BITRANK(sms.wSuperCap);
-      // 5. ½«ÁÙÊ±±äÁ¿"smv"ºÍ"sms"¿½±´µ½×Å·¨Ô¤Éú³ÉÊı×éÖĞ
+      // 5. å°†ä¸´æ—¶å˜é‡"smv"å’Œ"sms"æ‹·è´åˆ°ç€æ³•é¢„ç”Ÿæˆæ•°ç»„ä¸­
       PreGen.smvRankMoveTab[i][j] = smv;
       PreGen.smsRankMaskTab[i][j] = sms;
     }
   }
 
-  // È»ºóÉú³É³µÅÚ×İÏòµÄÔ¤ÖÃÊı×é(Êı×éµÄÓ¦ÓÃ²ÎÔÄ"pregen.h")
+  // ç„¶åç”Ÿæˆè½¦ç‚®çºµå‘çš„é¢„ç½®æ•°ç»„(æ•°ç»„çš„åº”ç”¨å‚é˜…"pregen.h")
   for (i = 0; i < 10; i ++) {
     for (j = 0; j < 1024; j ++) {
-      // ³õÊ¼»¯½èÖúÓÚ¡°Î»ÁĞ¡±µÄ³µºÍÅÚµÄ×Å·¨Ô¤Éú³ÉÊı×é£¬°üÀ¨ÒÔÏÂ¼¸¸ö²½Öè£º
-      // 1. ³õÊ¼»¯ÁÙÊ±±äÁ¿"smv"£¬¼ÙÉèÃ»ÓĞ×Å·¨£¬ÓÃÆğÊ¼¸ñÌî³ä
+      // åˆå§‹åŒ–å€ŸåŠ©äºâ€œä½åˆ—â€çš„è½¦å’Œç‚®çš„ç€æ³•é¢„ç”Ÿæˆæ•°ç»„ï¼ŒåŒ…æ‹¬ä»¥ä¸‹å‡ ä¸ªæ­¥éª¤ï¼š
+      // 1. åˆå§‹åŒ–ä¸´æ—¶å˜é‡"smv"ï¼Œå‡è®¾æ²¡æœ‰ç€æ³•ï¼Œç”¨èµ·å§‹æ ¼å¡«å……
       smv.ucNonCap[0] = smv.ucNonCap[1] = smv.ucRookCap[0] = smv.ucRookCap[1] =
       smv.ucCannonCap[0] = smv.ucCannonCap[1] = smv.ucSuperCap[0] = smv.ucSuperCap[1] = (i + RANK_TOP) * 16;
       sms.wNonCap = sms.wRookCap = sms.wCannonCap = sms.wSuperCap = 0;
-      // 2. ¿¼ÂÇÏòÏÂÒÆ¶¯µÄÄ¿±ê¸ñ£¬Ìî³ä...[0]
+      // 2. è€ƒè™‘å‘ä¸‹ç§»åŠ¨çš„ç›®æ ‡æ ¼ï¼Œå¡«å……...[0]
       for (k = i + 1; k <= 9; k ++) {
         if ((j & (1 << k)) != 0) {
           smv.ucRookCap[0] = RANK_DISP(k + RANK_TOP);
@@ -293,7 +293,7 @@ void PreGenInit(void) {
           break;
         }
       }
-      // 3. ¿¼ÂÇÏòÉÏÒÆ¶¯µÄÄ¿±ê¸ñ£¬Ìî³ä...[1]
+      // 3. è€ƒè™‘å‘ä¸Šç§»åŠ¨çš„ç›®æ ‡æ ¼ï¼Œå¡«å……...[1]
       for (k = i - 1; k >= 0; k --) {
         if ((j & (1 << k)) != 0) {
           smv.ucRookCap[1] = RANK_DISP(k + RANK_TOP);
@@ -317,7 +317,7 @@ void PreGenInit(void) {
           break;
         }
       }
-      // 4. Îª"smv"ºÍ"sms"µÄÖµ×÷¶ÏÑÔ
+      // 4. ä¸º"smv"å’Œ"sms"çš„å€¼ä½œæ–­è¨€
       __ASSERT_BOUND_2(3, smv.ucNonCap[1] >> 4, smv.ucNonCap[0] >> 4, 12);
       __ASSERT_BOUND_2(3, smv.ucRookCap[1] >> 4, smv.ucRookCap[0] >> 4, 12);
       __ASSERT_BOUND_2(3, smv.ucCannonCap[1] >> 4, smv.ucCannonCap[0] >> 4, 12);
@@ -326,16 +326,16 @@ void PreGenInit(void) {
       __ASSERT_BITFILE(sms.wRookCap);
       __ASSERT_BITFILE(sms.wCannonCap);
       __ASSERT_BITFILE(sms.wSuperCap);
-      // 5. ½«ÁÙÊ±±äÁ¿"smv"ºÍ"sms"¿½±´µ½×Å·¨Ô¤Éú³ÉÊı×éÖĞ
+      // 5. å°†ä¸´æ—¶å˜é‡"smv"å’Œ"sms"æ‹·è´åˆ°ç€æ³•é¢„ç”Ÿæˆæ•°ç»„ä¸­
       PreGen.smvFileMoveTab[i][j] = smv;
       PreGen.smsFileMaskTab[i][j] = sms;
     }
   }
 
-  // ½ÓÏÂÀ´Éú³É×Å·¨Ô¤Éú³ÉÊı×é£¬Á¬Í¬½«¾üÔ¤ÅĞÊı×é
+  // æ¥ä¸‹æ¥ç”Ÿæˆç€æ³•é¢„ç”Ÿæˆæ•°ç»„ï¼Œè¿åŒå°†å†›é¢„åˆ¤æ•°ç»„
   for (sqSrc = 0; sqSrc < 256; sqSrc ++) {
     if (IN_BOARD(sqSrc)) {
-      // Éú³ÉË§(½«)µÄ×Å·¨Ô¤Éú³ÉÊı×é
+      // ç”Ÿæˆå¸…(å°†)çš„ç€æ³•é¢„ç”Ÿæˆæ•°ç»„
       n = 0;
       for (i = 0; i < 4; i ++) {
         sqDst = sqSrc + cnKingMoveTab[i];
@@ -346,7 +346,7 @@ void PreGenInit(void) {
       }
       __ASSERT(n <= 4);
       PreGen.ucsqKingMoves[sqSrc][n] = 0;
-      // Éú³ÉÊË(Ê¿)µÄ×Å·¨Ô¤Éú³ÉÊı×é
+      // ç”Ÿæˆä»•(å£«)çš„ç€æ³•é¢„ç”Ÿæˆæ•°ç»„
       n = 0;
       for (i = 0; i < 4; i ++) {
         sqDst = sqSrc + cnAdvisorMoveTab[i];
@@ -357,7 +357,7 @@ void PreGenInit(void) {
       }
       __ASSERT(n <= 4);
       PreGen.ucsqAdvisorMoves[sqSrc][n] = 0;
-      // Éú³ÉÏà(Ïó)µÄ×Å·¨Ô¤Éú³ÉÊı×é£¬°üÀ¨ÏóÑÛÊı×é
+      // ç”Ÿæˆç›¸(è±¡)çš„ç€æ³•é¢„ç”Ÿæˆæ•°ç»„ï¼ŒåŒ…æ‹¬è±¡çœ¼æ•°ç»„
       n = 0;
       for (i = 0; i < 4; i ++) {
         sqDst = sqSrc + cnBishopMoveTab[i];
@@ -369,7 +369,7 @@ void PreGenInit(void) {
       }
       __ASSERT(n <= 4);
       PreGen.ucsqBishopMoves[sqSrc][n] = 0;
-      // Éú³ÉÂíµÄ×Å·¨Ô¤Éú³ÉÊı×é£¬°üÀ¨ÂíÍÈÊı×é
+      // ç”Ÿæˆé©¬çš„ç€æ³•é¢„ç”Ÿæˆæ•°ç»„ï¼ŒåŒ…æ‹¬é©¬è…¿æ•°ç»„
       n = 0;
       for (i = 0; i < 8; i ++) {
         sqDst = sqSrc + cnKnightMoveTab[i];
@@ -381,7 +381,7 @@ void PreGenInit(void) {
       }
       __ASSERT(n <= 8);
       PreGen.ucsqKnightMoves[sqSrc][n] = 0;
-      // Éú³É±ø(×ä)µÄ×Å·¨Ô¤Éú³ÉÊı×é
+      // ç”Ÿæˆå…µ(å’)çš„ç€æ³•é¢„ç”Ÿæˆæ•°ç»„
       for (i = 0; i < 2; i ++) {
         n = 0;
         sqDst = SQUARE_FORWARD(sqSrc, i);
@@ -405,7 +405,7 @@ void PreGenInit(void) {
     }
   }
 
-  // ×îºóÇå¿Õ¾ÖÃæÔ¤ÆÀ¼Û½á¹¹
+  // æœ€åæ¸…ç©ºå±€é¢é¢„è¯„ä»·ç»“æ„
   memset(&PreEval, 0, sizeof(PreEvalStruct));
-  PreEval.bPromotion = false; // È±Ê¡ÊÇ²»ÔÊĞíÉı±äµÄ
+  PreEval.bPromotion = false; // ç¼ºçœæ˜¯ä¸å…è®¸å‡å˜çš„
 }

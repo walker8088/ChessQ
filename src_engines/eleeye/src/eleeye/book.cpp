@@ -29,14 +29,14 @@ int GetBookMoves(const PositionStruct &pos, const char *szBookFile, BookStruct *
   BookStruct bk;
   int nScan, nLow, nHigh, nPtr;
   int i, j, nMoves;
-  // �ӿ��ֿ��������ŷ������̣������¼������裺
+  // 从开局库中搜索着法的例程，有以下几个步骤：
 
-  // 1. �򿪿��ֿ⣬�����ʧ�ܣ��򷵻ؿ�ֵ��
+  // 1. 打开开局库，如果打开失败，则返回空值；
   if (!BookFile.Open(szBookFile)) {
     return 0;
   }
 
-  // 2. �ò����ҷ��������棻
+  // 2. 用拆半查找法搜索局面；
   posScan = pos;
   for (nScan = 0; nScan < 2; nScan ++) {
     nPtr = nLow = 0;
@@ -55,18 +55,18 @@ int GetBookMoves(const PositionStruct &pos, const char *szBookFile, BookStruct *
     if (nLow <= nHigh) {
       break;
     }
-    // ԭ����;�����������һ��
+    // 原局面和镜像局面各搜索一趟
     posScan.Mirror();
   }
 
-  // 3. ����������棬�򷵻ؿ��ţ�
+  // 3. 如果不到局面，则返回空着；
   if (nScan == 2) {
     BookFile.Close();
     return 0;
   }
   __ASSERT_BOUND(0, nPtr, BookFile.nLen - 1);
 
-  // 4. ����ҵ����棬����ǰ���ҵ�һ���ŷ���
+  // 4. 如果找到局面，则向前查找第一个着法；
   for (nPtr --; nPtr >= 0; nPtr --) {
     BookFile.Read(bk, nPtr);
     if (BOOK_POS_CMP(bk, posScan) < 0) {
@@ -74,7 +74,7 @@ int GetBookMoves(const PositionStruct &pos, const char *szBookFile, BookStruct *
     }
   }
 
-  // 5. ������ζ������ڸþ����ÿ���ŷ���
+  // 5. 向后依次读入属于该局面的每个着法；
   nMoves = 0;
   for (nPtr ++; nPtr < BookFile.nLen; nPtr ++) {
     BookFile.Read(bk, nPtr);
@@ -82,7 +82,7 @@ int GetBookMoves(const PositionStruct &pos, const char *szBookFile, BookStruct *
       break;
     }
     if (posScan.LegalMove(bk.wmv)) {
-      // ��������ǵڶ����������ģ����ŷ�����������
+      // 如果局面是第二趟搜索到的，则着法必须做镜像
       lpbks[nMoves].nPtr = nPtr;
       lpbks[nMoves].wmv = (nScan == 0 ? bk.wmv : MOVE_MIRROR(bk.wmv));
       lpbks[nMoves].wvl = bk.wvl;
@@ -94,7 +94,7 @@ int GetBookMoves(const PositionStruct &pos, const char *szBookFile, BookStruct *
   }
   BookFile.Close();
 
-  // 6. ���ŷ�����ֵ����
+  // 6. 对着法按分值排序
   for (i = 0; i < nMoves - 1; i ++) {
     for (j = nMoves - 1; j > i; j --) {
       if (lpbks[j - 1].wvl < lpbks[j].wvl) {

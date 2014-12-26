@@ -27,38 +27,38 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef HASH_H
 #define HASH_H
 
-// ÖÃ»»±í±êÖ¾£¬Ö»ÓÃÔÚ"RecordHash()"º¯ÊıÖĞ
+// ç½®æ¢è¡¨æ ‡å¿—ï¼Œåªç”¨åœ¨"RecordHash()"å‡½æ•°ä¸­
 const int HASH_BETA = 1;
 const int HASH_ALPHA = 2;
 const int HASH_PV = HASH_ALPHA | HASH_BETA;
 
-const int HASH_LAYERS = 2;   // ÖÃ»»±íµÄ²ãÊı
-const int NULL_DEPTH = 2;    // ¿Õ×Å²Ã¼ôµÄÉî¶È
+const int HASH_LAYERS = 2;   // ç½®æ¢è¡¨çš„å±‚æ•°
+const int NULL_DEPTH = 2;    // ç©ºç€è£å‰ªçš„æ·±åº¦
 
-// ÖÃ»»±í½á¹¹£¬ÖÃ»»±íĞÅÏ¢¼ĞÔÚÁ½¸öZobristĞ£ÑéËøÖĞ¼ä£¬¿ÉÒÔ·ÀÖ¹´æÈ¡³åÍ»
+// ç½®æ¢è¡¨ç»“æ„ï¼Œç½®æ¢è¡¨ä¿¡æ¯å¤¹åœ¨ä¸¤ä¸ªZobristæ ¡éªŒé”ä¸­é—´ï¼Œå¯ä»¥é˜²æ­¢å­˜å–å†²çª
 struct HashStruct {
-  uint32_t dwZobristLock0;           // ZobristĞ£ÑéËø£¬µÚÒ»²¿·Ö
-  uint16_t wmv;                      // ×î¼Ñ×Å·¨
-  uint8_t ucAlphaDepth, ucBetaDepth; // Éî¶È(ÉÏ±ß½çºÍÏÂ±ß½ç)
-  int16_t svlAlpha, svlBeta;         // ·ÖÖµ(ÉÏ±ß½çºÍÏÂ±ß½ç)
-  uint32_t dwZobristLock1;           // ZobristĞ£ÑéËø£¬µÚ¶ş²¿·Ö
+  uint32_t dwZobristLock0;           // Zobristæ ¡éªŒé”ï¼Œç¬¬ä¸€éƒ¨åˆ†
+  uint16_t wmv;                      // æœ€ä½³ç€æ³•
+  uint8_t ucAlphaDepth, ucBetaDepth; // æ·±åº¦(ä¸Šè¾¹ç•Œå’Œä¸‹è¾¹ç•Œ)
+  int16_t svlAlpha, svlBeta;         // åˆ†å€¼(ä¸Šè¾¹ç•Œå’Œä¸‹è¾¹ç•Œ)
+  uint32_t dwZobristLock1;           // Zobristæ ¡éªŒé”ï¼Œç¬¬äºŒéƒ¨åˆ†
 }; // hsh
 
-// ÖÃ»»±íĞÅÏ¢
-extern int nHashMask;              // ÖÃ»»±íµÄ´óĞ¡
-extern HashStruct *hshItems;       // ÖÃ»»±íµÄÖ¸Õë£¬ElephantEye²ÉÓÃ¶à²ãµÄÖÃ»»±í
+// ç½®æ¢è¡¨ä¿¡æ¯
+extern int nHashMask;              // ç½®æ¢è¡¨çš„å¤§å°
+extern HashStruct *hshItems;       // ç½®æ¢è¡¨çš„æŒ‡é’ˆï¼ŒElephantEyeé‡‡ç”¨å¤šå±‚çš„ç½®æ¢è¡¨
 #ifdef HASH_QUIESC
   extern HashStruct *hshItemsQ;
 #endif
 
-inline void ClearHash(void) {         // Çå¿ÕÖÃ»»±í
+inline void ClearHash(void) {         // æ¸…ç©ºç½®æ¢è¡¨
   memset(hshItems, 0, (nHashMask + 1) * sizeof(HashStruct));
 #ifdef HASH_QUIESC
   memset(hshItemsQ, 0, (nHashMask + 1) * sizeof(HashStruct));
 #endif
 }
 
-inline void NewHash(int nHashScale) { // ·ÖÅäÖÃ»»±í£¬´óĞ¡ÊÇ 2^nHashScale ×Ö½Ú
+inline void NewHash(int nHashScale) { // åˆ†é…ç½®æ¢è¡¨ï¼Œå¤§å°æ˜¯ 2^nHashScale å­—èŠ‚
   nHashMask = ((1 << nHashScale) / sizeof(HashStruct)) - 1;
   hshItems = new HashStruct[nHashMask + 1];
 #ifdef HASH_QUIESC
@@ -67,33 +67,33 @@ inline void NewHash(int nHashScale) { // ·ÖÅäÖÃ»»±í£¬´óĞ¡ÊÇ 2^nHashScale ×Ö½Ú
   ClearHash();
 }
 
-inline void DelHash(void) {           // ÊÍ·ÅÖÃ»»±í
+inline void DelHash(void) {           // é‡Šæ”¾ç½®æ¢è¡¨
   delete[] hshItems;
 #ifdef HASH_QUIESC
   delete[] hshItemsQ;
 #endif
 }
 
-// ÅĞ¶ÏÖÃ»»±íÊÇ·ñ·ûºÏ¾ÖÃæ(ZobristËøÊÇ·ñÏàµÈ)
+// åˆ¤æ–­ç½®æ¢è¡¨æ˜¯å¦ç¬¦åˆå±€é¢(Zobristé”æ˜¯å¦ç›¸ç­‰)
 inline bool HASH_POS_EQUAL(const HashStruct &hsh, const PositionStruct &pos) {
   return hsh.dwZobristLock0 == pos.zobr.dwLock0 && hsh.dwZobristLock1 == pos.zobr.dwLock1;
 }
 
-// °´¾ÖÃæºÍ²ãÊı»ñÈ¡ÖÃ»»±íÏî(·µ»ØÒ»¸öÒıÓÃ£¬¿ÉÒÔ¶ÔÆä¸³Öµ)
+// æŒ‰å±€é¢å’Œå±‚æ•°è·å–ç½®æ¢è¡¨é¡¹(è¿”å›ä¸€ä¸ªå¼•ç”¨ï¼Œå¯ä»¥å¯¹å…¶èµ‹å€¼)
 inline HashStruct &HASH_ITEM(const PositionStruct &pos, int nLayer) {
   return hshItems[(pos.zobr.dwKey + nLayer) & nHashMask];
 }
 
-// ÖÃ»»±íµÄ¹ÜÀí¹ı³Ì
-void RecordHash(const PositionStruct &pos, int nFlag, int vl, int nDepth, int mv);                    // ´æ´¢ÖÃ»»±í¾ÖÃæĞÅÏ¢
-int ProbeHash(const PositionStruct &pos, int vlAlpha, int vlBeta, int nDepth, bool bNoNull, int &mv); // »ñÈ¡ÖÃ»»±í¾ÖÃæĞÅÏ¢
+// ç½®æ¢è¡¨çš„ç®¡ç†è¿‡ç¨‹
+void RecordHash(const PositionStruct &pos, int nFlag, int vl, int nDepth, int mv);                    // å­˜å‚¨ç½®æ¢è¡¨å±€é¢ä¿¡æ¯
+int ProbeHash(const PositionStruct &pos, int vlAlpha, int vlBeta, int nDepth, bool bNoNull, int &mv); // è·å–ç½®æ¢è¡¨å±€é¢ä¿¡æ¯
 #ifdef HASH_QUIESC
-  void RecordHashQ(const PositionStruct &pos, int vlBeta, int vlAlpha); // ´æ´¢ÖÃ»»±í¾ÖÃæĞÅÏ¢(¾²Ì¬ËÑË÷)
-  int ProbeHashQ(const PositionStruct &pos, int vlAlpha, int vlBeta);   // »ñÈ¡ÖÃ»»±í¾ÖÃæĞÅÏ¢(¾²Ì¬ËÑË÷)
+  void RecordHashQ(const PositionStruct &pos, int vlBeta, int vlAlpha); // å­˜å‚¨ç½®æ¢è¡¨å±€é¢ä¿¡æ¯(é™æ€æœç´¢)
+  int ProbeHashQ(const PositionStruct &pos, int vlAlpha, int vlBeta);   // è·å–ç½®æ¢è¡¨å±€é¢ä¿¡æ¯(é™æ€æœç´¢)
 #endif
 
 #ifndef CCHESS_A3800
-  // UCCIÖ§³Ö - Êä³öHash±íÖĞµÄ¾ÖÃæĞÅÏ¢
+  // UCCIæ”¯æŒ - è¾“å‡ºHashè¡¨ä¸­çš„å±€é¢ä¿¡æ¯
   bool PopHash(const PositionStruct &pos);
 #endif
 

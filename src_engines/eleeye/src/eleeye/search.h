@@ -31,27 +31,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef SEARCH_H
 #define SEARCH_H
 
-// ËÑË÷Ä£Ê½
+// æœç´¢æ¨¡å¼
 const int GO_MODE_INFINITY = 0;
 const int GO_MODE_NODES = 1;
 const int GO_MODE_TIMER = 2;
 
-// ËÑË÷Ç°¿ÉÉèÖÃµÄÈ«¾Ö±äÁ¿£¬Ö¸¶¨ËÑË÷²ÎÊı
+// æœç´¢å‰å¯è®¾ç½®çš„å…¨å±€å˜é‡ï¼ŒæŒ‡å®šæœç´¢å‚æ•°
 struct SearchStruct {
-  PositionStruct pos;                // ÓĞ´ıËÑË÷µÄ¾ÖÃæ
-  bool bQuit, bPonder, bDraw;        // ÊÇ·ñÊÕµ½ÍË³öÖ¸Áî¡¢ºóÌ¨Ë¼¿¼Ä£Ê½ºÍÌáºÍÄ£Ê½
-  bool bBatch, bDebug;               // ÊÇ·ñÅú´¦ÀíÄ£Ê½ºÍµ÷ÊÔÄ£Ê½
-  bool bUseHash, bUseBook;           // ÊÇ·ñÊ¹ÓÃÖÃ»»±í²Ã¼ôºÍ¿ª¾Ö¿â
-  bool bNullMove, bKnowledge;        // ÊÇ·ñ¿Õ×Å²Ã¼ôºÍÊ¹ÓÃ¾ÖÃæÆÀ¼ÛÖªÊ¶
-  bool bIdle;                        // ÊÇ·ñ¿ÕÏĞ
-  RC4Struct rc4Random;               // Ëæ»úÊı
-  int nGoMode, nNodes, nCountMask;   // ËÑË÷Ä£Ê½¡¢½áµãÊıºÍ
-  int nProperTimer, nMaxTimer;       // ¼Æ»®Ê¹ÓÃÊ±¼ä
-  int nRandomMask, nBanMoves;        // Ëæ»úĞÔÆÁ±ÎÎ»ºÍ½û×ÅÊı
-  uint16_t wmvBanList[MAX_MOVE_NUM]; // ½û×ÅÁĞ±í
-  char szBookFile[1024];             // ¿ª¾Ö¿â
+  PositionStruct pos;                // æœ‰å¾…æœç´¢çš„å±€é¢
+  bool bQuit, bPonder, bDraw;        // æ˜¯å¦æ”¶åˆ°é€€å‡ºæŒ‡ä»¤ã€åå°æ€è€ƒæ¨¡å¼å’Œæå’Œæ¨¡å¼
+  bool bBatch, bDebug;               // æ˜¯å¦æ‰¹å¤„ç†æ¨¡å¼å’Œè°ƒè¯•æ¨¡å¼
+  bool bUseHash, bUseBook;           // æ˜¯å¦ä½¿ç”¨ç½®æ¢è¡¨è£å‰ªå’Œå¼€å±€åº“
+  bool bNullMove, bKnowledge;        // æ˜¯å¦ç©ºç€è£å‰ªå’Œä½¿ç”¨å±€é¢è¯„ä»·çŸ¥è¯†
+  bool bIdle;                        // æ˜¯å¦ç©ºé—²
+  RC4Struct rc4Random;               // éšæœºæ•°
+  int nGoMode, nNodes, nCountMask;   // æœç´¢æ¨¡å¼ã€ç»“ç‚¹æ•°å’Œ
+  int nProperTimer, nMaxTimer;       // è®¡åˆ’ä½¿ç”¨æ—¶é—´
+  int nRandomMask, nBanMoves;        // éšæœºæ€§å±è”½ä½å’Œç¦ç€æ•°
+  uint16_t wmvBanList[MAX_MOVE_NUM]; // ç¦ç€åˆ—è¡¨
+  char szBookFile[1024];             // å¼€å±€åº“
 #ifdef CCHESS_A3800
-  int mvResult;                      // ·µ»Ø×Å·¨
+  int mvResult;                      // è¿”å›ç€æ³•
 #endif
 };
 
@@ -59,15 +59,15 @@ extern SearchStruct Search;
 
 #ifndef CCHESS_A3800
 
-// UCCI¾ÖÃæ¹¹Ôì¹ı³Ì
+// UCCIå±€é¢æ„é€ è¿‡ç¨‹
 void BuildPos(PositionStruct &pos, const UcciCommStruct &UcciComm);
 
-// UCCIÖ§³Ö - Êä³öÒ¶×Ó½áµãµÄ¾ÖÃæĞÅÏ¢
+// UCCIæ”¯æŒ - è¾“å‡ºå¶å­ç»“ç‚¹çš„å±€é¢ä¿¡æ¯
 void PopLeaf(PositionStruct &pos);
 
 #endif
 
-// ËÑË÷µÄÆô¶¯¹ı³Ì
+// æœç´¢çš„å¯åŠ¨è¿‡ç¨‹
 void SearchMain(int nDepth);
 
 #endif

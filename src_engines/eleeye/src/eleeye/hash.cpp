@@ -33,48 +33,48 @@ HashStruct *hshItems;
   HashStruct *hshItemsQ;
 #endif
 
-// ´æ´¢ÖÃ»»±í¾ÖÃæĞÅÏ¢
+// å­˜å‚¨ç½®æ¢è¡¨å±€é¢ä¿¡æ¯
 void RecordHash(const PositionStruct &pos, int nFlag, int vl, int nDepth, int mv) {
   HashStruct hsh;
   int i, nHashDepth, nMinDepth, nMinLayer;
-  // ´æ´¢ÖÃ»»±í¾ÖÃæĞÅÏ¢µÄ¹ı³Ì°üÀ¨ÒÔÏÂ¼¸¸ö²½Öè£º
+  // å­˜å‚¨ç½®æ¢è¡¨å±€é¢ä¿¡æ¯çš„è¿‡ç¨‹åŒ…æ‹¬ä»¥ä¸‹å‡ ä¸ªæ­¥éª¤ï¼š
 
-  // 1. ¶Ô·ÖÖµ×öÉ±Æå²½Êıµ÷Õû£»
+  // 1. å¯¹åˆ†å€¼åšæ€æ£‹æ­¥æ•°è°ƒæ•´ï¼›
   __ASSERT_BOUND(1 - MATE_VALUE, vl, MATE_VALUE - 1);
   __ASSERT(mv == 0 || pos.LegalMove(mv));
   if (vl > WIN_VALUE) {
     if (mv == 0 && vl <= BAN_VALUE) {
-      return; // µ¼ÖÂ³¤½«µÄ¾ÖÃæ(²»½øĞĞÖÃ»»²Ã¼ô)Èç¹ûÁ¬×î¼Ñ×Å·¨Ò²Ã»ÓĞ£¬ÄÇÃ´Ã»ÓĞ±ØÒªĞ´ÈëÖÃ»»±í
+      return; // å¯¼è‡´é•¿å°†çš„å±€é¢(ä¸è¿›è¡Œç½®æ¢è£å‰ª)å¦‚æœè¿æœ€ä½³ç€æ³•ä¹Ÿæ²¡æœ‰ï¼Œé‚£ä¹ˆæ²¡æœ‰å¿…è¦å†™å…¥ç½®æ¢è¡¨
     }
     vl += pos.nDistance;
   } else if (vl < -WIN_VALUE) {
     if (mv == 0 && vl >= -BAN_VALUE) {
-      return; // Í¬Àí
+      return; // åŒç†
     }
     vl -= pos.nDistance;
   } else if (vl == pos.DrawValue() && mv == 0) {
-    return;   // Í¬Àí
+    return;   // åŒç†
   }
 
-  // 2. Öğ²ãÊÔÌ½ÖÃ»»±í£»
+  // 2. é€å±‚è¯•æ¢ç½®æ¢è¡¨ï¼›
   nMinDepth = 512;
   nMinLayer = 0;
   for (i = 0; i < HASH_LAYERS; i ++) {
     hsh = HASH_ITEM(pos, i);
 
-    // 3. Èç¹ûÊÔÌ½µ½Ò»ÑùµÄ¾ÖÃæ£¬ÄÇÃ´¸üĞÂÖÃ»»±íĞÅÏ¢¼´¿É£»
+    // 3. å¦‚æœè¯•æ¢åˆ°ä¸€æ ·çš„å±€é¢ï¼Œé‚£ä¹ˆæ›´æ–°ç½®æ¢è¡¨ä¿¡æ¯å³å¯ï¼›
     if (HASH_POS_EQUAL(hsh, pos)) {
-      // Èç¹ûÉî¶È¸üÉî£¬»òÕß±ß½çËõĞ¡£¬¶¼¿É¸üĞÂÖÃ»»±íµÄÖµ
+      // å¦‚æœæ·±åº¦æ›´æ·±ï¼Œæˆ–è€…è¾¹ç•Œç¼©å°ï¼Œéƒ½å¯æ›´æ–°ç½®æ¢è¡¨çš„å€¼
       if ((nFlag & HASH_ALPHA) != 0 && (hsh.ucAlphaDepth <= nDepth || hsh.svlAlpha >= vl)) {
         hsh.ucAlphaDepth = nDepth;
         hsh.svlAlpha = vl;
       }
-      // Beta½áµãÒª×¢Òâ£º²»ÒªÓÃNull-MoveµÄ½áµã¸²¸ÇÕı³£µÄ½áµã
+      // Betaç»“ç‚¹è¦æ³¨æ„ï¼šä¸è¦ç”¨Null-Moveçš„ç»“ç‚¹è¦†ç›–æ­£å¸¸çš„ç»“ç‚¹
       if ((nFlag & HASH_BETA) != 0 && (hsh.ucBetaDepth <= nDepth || hsh.svlBeta <= vl) && (mv != 0 || hsh.wmv == 0)) {
         hsh.ucBetaDepth = nDepth;
         hsh.svlBeta = vl;
       }
-      // ×î¼Ñ×Å·¨ÊÇÊ¼ÖÕ¸²¸ÇµÄ
+      // æœ€ä½³ç€æ³•æ˜¯å§‹ç»ˆè¦†ç›–çš„
       if (mv != 0) {
         hsh.wmv = mv;
       }
@@ -82,7 +82,7 @@ void RecordHash(const PositionStruct &pos, int nFlag, int vl, int nDepth, int mv
       return;
     }
 
-    // 4. Èç¹û²»ÊÇÒ»ÑùµÄ¾ÖÃæ£¬ÄÇÃ´»ñµÃÉî¶È×îĞ¡µÄÖÃ»»±íÏî£»
+    // 4. å¦‚æœä¸æ˜¯ä¸€æ ·çš„å±€é¢ï¼Œé‚£ä¹ˆè·å¾—æ·±åº¦æœ€å°çš„ç½®æ¢è¡¨é¡¹ï¼›
     nHashDepth = MAX((hsh.ucAlphaDepth == 0 ? 0 : hsh.ucAlphaDepth + 256),
         (hsh.wmv == 0 ? hsh.ucBetaDepth : hsh.ucBetaDepth + 256));
     __ASSERT(nHashDepth < 512);
@@ -92,7 +92,7 @@ void RecordHash(const PositionStruct &pos, int nFlag, int vl, int nDepth, int mv
     }
   }
 
-  // 5. ¼ÇÂ¼ÖÃ»»±í¡£
+  // 5. è®°å½•ç½®æ¢è¡¨ã€‚
   hsh.dwZobristLock0 = pos.zobr.dwLock0;
   hsh.dwZobristLock1 = pos.zobr.dwLock1;
   hsh.wmv = mv;
@@ -109,12 +109,12 @@ void RecordHash(const PositionStruct &pos, int nFlag, int vl, int nDepth, int mv
   HASH_ITEM(pos, nMinLayer) = hsh;
 }
 
-/* ÅĞ¶Ï»ñÈ¡ÖÃ»»±íÒª·ûºÏÄÄĞ©Ìõ¼ş£¬ÖÃ»»±íµÄ·ÖÖµÕë¶ÔËÄ¸ö²»Í¬µÄÇø¼äÓĞ²»Í¬µÄ´¦Àí£º
- * Ò»¡¢Èç¹û·ÖÖµÔÚ"WIN_VALUE"ÒÔÄÚ(¼´½éÓÚ"-WIN_VALUE"µ½"WIN_VALUE"Ö®¼ä£¬ÏÂÍ¬)£¬ÔòÖ»»ñÈ¡Âú×ãËÑË÷Éî¶ÈÒªÇóµÄ¾ÖÃæ£»
- * ¶ş¡¢Èç¹û·ÖÖµÔÚ"WIN_VALUE"ºÍ"BAN_VALUE"Ö®¼ä£¬Ôò²»ÄÜ»ñÈ¡ÖÃ»»±íÖĞµÄÖµ(Ö»ÄÜ»ñÈ¡×î¼Ñ×Å·¨½ö¹©²Î¿¼)£¬Ä¿µÄÊÇ·ÀÖ¹ÓÉÓÚ³¤½«¶øµ¼ÖÂµÄ¡°ÖÃ»»±íµÄ²»ÎÈ¶¨ĞÔ¡±£»
- * Èı¡¢Èç¹û·ÖÖµÔÚ"BAN_VALUE"ÒÔÍâ£¬Ôò»ñÈ¡¾ÖÃæÊ±²»±Ø¿¼ÂÇËÑË÷Éî¶ÈÒªÇó£¬ÒòÎªÕâĞ©¾ÖÃæÒÑ¾­±»Ö¤Ã÷ÊÇÉ±ÆåÁË£»
- * ËÄ¡¢Èç¹û·ÖÖµÊÇ"DrawValue()"(ÊÇµÚÒ»ÖÖÇé¿öµÄÌØÊâÇé¿ö)£¬Ôò²»ÄÜ»ñÈ¡ÖÃ»»±íÖĞµÄÖµ(Ô­ÒòÓëµÚ¶şÖÖÇé¿öÏàÍ¬)¡£
- * ×¢Òâ£º¶ÔÓÚµÚÈıÖÖÇé¿ö£¬Òª¶ÔÉ±Æå²½Êı½øĞĞµ÷Õû£¡
+/* åˆ¤æ–­è·å–ç½®æ¢è¡¨è¦ç¬¦åˆå“ªäº›æ¡ä»¶ï¼Œç½®æ¢è¡¨çš„åˆ†å€¼é’ˆå¯¹å››ä¸ªä¸åŒçš„åŒºé—´æœ‰ä¸åŒçš„å¤„ç†ï¼š
+ * ä¸€ã€å¦‚æœåˆ†å€¼åœ¨"WIN_VALUE"ä»¥å†…(å³ä»‹äº"-WIN_VALUE"åˆ°"WIN_VALUE"ä¹‹é—´ï¼Œä¸‹åŒ)ï¼Œåˆ™åªè·å–æ»¡è¶³æœç´¢æ·±åº¦è¦æ±‚çš„å±€é¢ï¼›
+ * äºŒã€å¦‚æœåˆ†å€¼åœ¨"WIN_VALUE"å’Œ"BAN_VALUE"ä¹‹é—´ï¼Œåˆ™ä¸èƒ½è·å–ç½®æ¢è¡¨ä¸­çš„å€¼(åªèƒ½è·å–æœ€ä½³ç€æ³•ä»…ä¾›å‚è€ƒ)ï¼Œç›®çš„æ˜¯é˜²æ­¢ç”±äºé•¿å°†è€Œå¯¼è‡´çš„â€œç½®æ¢è¡¨çš„ä¸ç¨³å®šæ€§â€ï¼›
+ * ä¸‰ã€å¦‚æœåˆ†å€¼åœ¨"BAN_VALUE"ä»¥å¤–ï¼Œåˆ™è·å–å±€é¢æ—¶ä¸å¿…è€ƒè™‘æœç´¢æ·±åº¦è¦æ±‚ï¼Œå› ä¸ºè¿™äº›å±€é¢å·²ç»è¢«è¯æ˜æ˜¯æ€æ£‹äº†ï¼›
+ * å››ã€å¦‚æœåˆ†å€¼æ˜¯"DrawValue()"(æ˜¯ç¬¬ä¸€ç§æƒ…å†µçš„ç‰¹æ®Šæƒ…å†µ)ï¼Œåˆ™ä¸èƒ½è·å–ç½®æ¢è¡¨ä¸­çš„å€¼(åŸå› ä¸ç¬¬äºŒç§æƒ…å†µç›¸åŒ)ã€‚
+ * æ³¨æ„ï¼šå¯¹äºç¬¬ä¸‰ç§æƒ…å†µï¼Œè¦å¯¹æ€æ£‹æ­¥æ•°è¿›è¡Œè°ƒæ•´ï¼
  */
 inline int ValueAdjust(const PositionStruct &pos, bool &bBanNode, bool &bMateNode, int vl) {
   bBanNode = bMateNode = false;
@@ -138,44 +138,44 @@ inline int ValueAdjust(const PositionStruct &pos, bool &bBanNode, bool &bMateNod
   return vl;
 }
 
-// ¼ì²âÏÂÒ»¸ö×Å·¨ÊÇ·ñÎÈ¶¨£¬ÓĞÖúÓÚ¼õÉÙÖÃ»»±íµÄ²»ÎÈ¶¨ĞÔ
+// æ£€æµ‹ä¸‹ä¸€ä¸ªç€æ³•æ˜¯å¦ç¨³å®šï¼Œæœ‰åŠ©äºå‡å°‘ç½®æ¢è¡¨çš„ä¸ç¨³å®šæ€§
 inline bool MoveStable(PositionStruct &pos, int mv) {
-  // ÅĞ¶ÏÏÂÒ»¸ö×Å·¨ÊÇ·ñÎÈ¶¨µÄÒÀ¾İÊÇ£º
-  // 1. Ã»ÓĞºóĞø×Å·¨£¬Ôò¼Ù¶¨ÊÇÎÈ¶¨µÄ£»
+  // åˆ¤æ–­ä¸‹ä¸€ä¸ªç€æ³•æ˜¯å¦ç¨³å®šçš„ä¾æ®æ˜¯ï¼š
+  // 1. æ²¡æœ‰åç»­ç€æ³•ï¼Œåˆ™å‡å®šæ˜¯ç¨³å®šçš„ï¼›
   if (mv == 0) {
     return true;
   }
-  // 2. ³Ô×Ó×Å·¨ÊÇÎÈ¶¨µÄ£»
+  // 2. åƒå­ç€æ³•æ˜¯ç¨³å®šçš„ï¼›
   __ASSERT(pos.LegalMove(mv));
   if (pos.ucpcSquares[DST(mv)] != 0) {
     return true;
   }
-  // 3. ¿ÉÄÜÒòÖÃ»»±íÒıÆğÂ·ÏßÇ¨ÒÆ£¬Ê¹µÃÂ·Ïß³¬¹ı"MAX_MOVE_NUM"£¬´ËÊ±Ó¦Á¢¿ÌÖÕÖ¹Â·Ïß£¬²¢¼Ù¶¨ÊÇÎÈ¶¨µÄ¡£
+  // 3. å¯èƒ½å› ç½®æ¢è¡¨å¼•èµ·è·¯çº¿è¿ç§»ï¼Œä½¿å¾—è·¯çº¿è¶…è¿‡"MAX_MOVE_NUM"ï¼Œæ­¤æ—¶åº”ç«‹åˆ»ç»ˆæ­¢è·¯çº¿ï¼Œå¹¶å‡å®šæ˜¯ç¨³å®šçš„ã€‚
   if (!pos.MakeMove(mv)) {
     return true;
   }
   return false;
 }
 
-// ¼ì²âºóĞøÂ·ÏßÊÇ·ñÎÈ¶¨(²»ÊÇÑ­»·Â·Ïß)£¬ÓĞÖúÓÚ¼õÉÙÖÃ»»±íµÄ²»ÎÈ¶¨ĞÔ
+// æ£€æµ‹åç»­è·¯çº¿æ˜¯å¦ç¨³å®š(ä¸æ˜¯å¾ªç¯è·¯çº¿)ï¼Œæœ‰åŠ©äºå‡å°‘ç½®æ¢è¡¨çš„ä¸ç¨³å®šæ€§
 static bool PosStable(const PositionStruct &pos, int mv) {
   HashStruct hsh;
   int i, nMoveNum;
   bool bStable;
-  // pos»áÑØ×ÅÂ·Ïß±ä»¯£¬µ«×îÖÕ»á»¹Ô­£¬ËùÒÔ±»ÊÓÎª"const"£¬¶øÈÃ"posMutable"³Ğµ£·Ç"const"µÄ½ÇÉ«
+  // posä¼šæ²¿ç€è·¯çº¿å˜åŒ–ï¼Œä½†æœ€ç»ˆä¼šè¿˜åŸï¼Œæ‰€ä»¥è¢«è§†ä¸º"const"ï¼Œè€Œè®©"posMutable"æ‰¿æ‹…é"const"çš„è§’è‰²
   PositionStruct &posMutable = (PositionStruct &) pos;
 
   __ASSERT(mv != 0);
   nMoveNum = 0;
   bStable = true;
   while (!MoveStable(posMutable, mv)) {
-    nMoveNum ++; // "!MoveStable()"±íÃ÷ÒÑ¾­Ö´ĞĞÁËÒ»¸ö×Å·¨£¬ÒÔºóĞèÒª³·Ïû
-    // Ö´ĞĞÕâ¸ö×Å·¨£¬Èç¹û²úÉúÑ­»·£¬ÄÇÃ´ÖÕÖ¹ºóĞøÂ·Ïß£¬²¢È·ÈÏ¸ÃÂ·Ïß²»ÎÈ¶¨
+    nMoveNum ++; // "!MoveStable()"è¡¨æ˜å·²ç»æ‰§è¡Œäº†ä¸€ä¸ªç€æ³•ï¼Œä»¥åéœ€è¦æ’¤æ¶ˆ
+    // æ‰§è¡Œè¿™ä¸ªç€æ³•ï¼Œå¦‚æœäº§ç”Ÿå¾ªç¯ï¼Œé‚£ä¹ˆç»ˆæ­¢åç»­è·¯çº¿ï¼Œå¹¶ç¡®è®¤è¯¥è·¯çº¿ä¸ç¨³å®š
     if (posMutable.RepStatus() > 0) {
       bStable = false;
       break;
     }
-    // Öğ²ã»ñÈ¡ÖÃ»»±íÏî£¬·½·¨Í¬"ProbeHash()"
+    // é€å±‚è·å–ç½®æ¢è¡¨é¡¹ï¼Œæ–¹æ³•åŒ"ProbeHash()"
     for (i = 0; i < HASH_LAYERS; i ++) {
       hsh = HASH_ITEM(posMutable, i);
       if (HASH_POS_EQUAL(hsh, posMutable)) {
@@ -184,21 +184,21 @@ static bool PosStable(const PositionStruct &pos, int mv) {
     }
     mv = (i == HASH_LAYERS ? 0 : hsh.wmv);
   }
-  // ³·ÏûÇ°ÃæÖ´ĞĞ¹ıµÄËùÓĞ×Å·¨
+  // æ’¤æ¶ˆå‰é¢æ‰§è¡Œè¿‡çš„æ‰€æœ‰ç€æ³•
   for (i = 0; i < nMoveNum; i ++) {
     posMutable.UndoMakeMove();
   }
   return bStable;
 }
 
-// »ñÈ¡ÖÃ»»±í¾ÖÃæĞÅÏ¢(Ã»ÓĞÃüÖĞÊ±£¬·µ»Ø"-MATE_VALUE")
+// è·å–ç½®æ¢è¡¨å±€é¢ä¿¡æ¯(æ²¡æœ‰å‘½ä¸­æ—¶ï¼Œè¿”å›"-MATE_VALUE")
 int ProbeHash(const PositionStruct &pos, int vlAlpha, int vlBeta, int nDepth, bool bNoNull, int &mv) {
   HashStruct hsh;
   int i, vl;
   bool bBanNode, bMateNode;
-  // »ñÈ¡ÖÃ»»±í¾ÖÃæĞÅÏ¢µÄ¹ı³Ì°üÀ¨ÒÔÏÂ¼¸¸ö²½Öè£º
+  // è·å–ç½®æ¢è¡¨å±€é¢ä¿¡æ¯çš„è¿‡ç¨‹åŒ…æ‹¬ä»¥ä¸‹å‡ ä¸ªæ­¥éª¤ï¼š
 
-  // 1. Öğ²ã»ñÈ¡ÖÃ»»±íÏî
+  // 1. é€å±‚è·å–ç½®æ¢è¡¨é¡¹
   mv = 0;
   for (i = 0; i < HASH_LAYERS; i ++) {
     hsh = HASH_ITEM(pos, i);
@@ -212,7 +212,7 @@ int ProbeHash(const PositionStruct &pos, int vlAlpha, int vlBeta, int nDepth, bo
     return -MATE_VALUE;
   }
 
-  // 2. ÅĞ¶ÏÊÇ·ñ·ûºÏBeta±ß½ç
+  // 2. åˆ¤æ–­æ˜¯å¦ç¬¦åˆBetaè¾¹ç•Œ
   if (hsh.ucBetaDepth > 0) {
     vl = ValueAdjust(pos, bBanNode, bMateNode, hsh.svlBeta);
     if (!bBanNode && !(hsh.wmv == 0 && bNoNull) && (hsh.ucBetaDepth >= nDepth || bMateNode) && vl >= vlBeta) {
@@ -223,7 +223,7 @@ int ProbeHash(const PositionStruct &pos, int vlAlpha, int vlBeta, int nDepth, bo
     }
   }
 
-  // 3. ÅĞ¶ÏÊÇ·ñ·ûºÏAlpha±ß½ç
+  // 3. åˆ¤æ–­æ˜¯å¦ç¬¦åˆAlphaè¾¹ç•Œ
   if (hsh.ucAlphaDepth > 0) {
     vl = ValueAdjust(pos, bBanNode, bMateNode, hsh.svlAlpha);
     if (!bBanNode && (hsh.ucAlphaDepth >= nDepth || bMateNode) && vl <= vlAlpha) {
@@ -238,7 +238,7 @@ int ProbeHash(const PositionStruct &pos, int vlAlpha, int vlBeta, int nDepth, bo
 
 #ifdef HASH_QUIESC
 
-// ´æ´¢ÖÃ»»±í¾ÖÃæĞÅÏ¢(¾²Ì¬ËÑË÷)
+// å­˜å‚¨ç½®æ¢è¡¨å±€é¢ä¿¡æ¯(é™æ€æœç´¢)
 void RecordHashQ(const PositionStruct &pos, int vlBeta, int vlAlpha) {
   volatile HashStruct *lphsh;
   __ASSERT((vlBeta > -WIN_VALUE && vlBeta < WIN_VALUE) || (vlAlpha > -WIN_VALUE && vlAlpha < WIN_VALUE));
@@ -249,7 +249,7 @@ void RecordHashQ(const PositionStruct &pos, int vlBeta, int vlAlpha) {
   lphsh->dwZobristLock1 = pos.zobr.dwLock1;
 }
 
-// »ñÈ¡ÖÃ»»±í¾ÖÃæĞÅÏ¢(¾²Ì¬ËÑË÷)
+// è·å–ç½®æ¢è¡¨å±€é¢ä¿¡æ¯(é™æ€æœç´¢)
 int ProbeHashQ(const PositionStruct &pos, int vlAlpha, int vlBeta) {
   volatile HashStruct *lphsh;
   int vlHashAlpha, vlHashBeta;
@@ -276,7 +276,7 @@ int ProbeHashQ(const PositionStruct &pos, int vlAlpha, int vlBeta) {
 
 #ifndef CCHESS_A3800
 
-// UCCIÖ§³Ö - Êä³öHash±íÖĞµÄ¾ÖÃæĞÅÏ¢
+// UCCIæ”¯æŒ - è¾“å‡ºHashè¡¨ä¸­çš„å±€é¢ä¿¡æ¯
 bool PopHash(const PositionStruct &pos) {
   HashStruct hsh;
   uint32_t dwMoveStr;

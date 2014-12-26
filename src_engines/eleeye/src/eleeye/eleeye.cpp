@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "hash.h"
 #include "search.h"
 
-const int INTERRUPT_COUNT = 4096; // �������ɽ�������ж�
+const int INTERRUPT_COUNT = 4096; // 搜索若干结点后调用中断
 
 inline void PrintLn(const char *sz) {
   printf("%s\n", sz);
@@ -81,7 +81,7 @@ int main(void) {
   PrintLn("option newgame type button");
   PrintLn("ucciok");
 
-  // �����ǽ���ָ����ṩ�Բߵ�ѭ����
+  // 以下是接收指令和提供对策的循环体
   while (!Search.bQuit) {
     switch (IdleLine(UcciComm, Search.bDebug)) {
     case UCCI_COMM_ISREADY:
@@ -131,12 +131,12 @@ int main(void) {
         break;
       case UCCI_OPTION_HASHSIZE:
         DelHash();
-        i = 19; // С��1������0.5M�û���
+        i = 19; // 小于1，分配0.5M置换表
         while (UcciComm.nSpin > 0) {
           UcciComm.nSpin /= 2;
           i ++;
         }
-        NewHash(MAX(i, 24)); // ��С���û�����Ϊ16M
+        NewHash(MAX(i, 24)); // 最小的置换表设为16M
         break;
       case UCCI_OPTION_IDLE:
         switch (UcciComm.Grade) {
@@ -212,16 +212,16 @@ int main(void) {
       case UCCI_GO_TIME_INCREMENT:
         Search.nGoMode = GO_MODE_TIMER;
         if (UcciComm.Go == UCCI_GO_TIME_MOVESTOGO) {
-          // ����ʱ���ƣ���ʣ��ʱ��ƽ�����䵽ÿһ������Ϊ�ʵ�ʱ�ޡ�
-          // ʣ�ಽ����1��5�����ʱ��������ʣ��ʱ���100%��90%��80%��70%��60%��5���϶���50%
+          // 对于时段制，把剩余时间平均分配到每一步，作为适当时限。
+          // 剩余步数从1到5，最大时限依次是剩余时间的100%、90%、80%、70%和60%，5以上都是50%
           Search.nProperTimer = UcciComm.nTime / UcciComm.nMovesToGo;
           Search.nMaxTimer = UcciComm.nTime * MAX(5, 11 - UcciComm.nMovesToGo) / 10;
         } else {
-          // ���ڼ�ʱ�ƣ�������ֻ���20�غ��ڽ��������ƽ��ÿһ�����ʵ�ʱ�ޣ����ʱ����ʣ��ʱ���һ��
+          // 对于加时制，假设棋局会在20回合内结束，算出平均每一步的适当时限，最大时限是剩余时间的一半
           Search.nProperTimer = UcciComm.nTime / 20 + UcciComm.nIncrement;
           Search.nMaxTimer = UcciComm.nTime / 2;
         }
-        // ����Ǻ�̨˼����ʱ�������ԣ���ô�ʵ�ʱ����Ϊԭ����1.25��
+        // 如果是后台思考的时间分配策略，那么适当时限设为原来的1.25倍
         Search.nProperTimer += (bPonderTime ? Search.nProperTimer / 4 : 0);
         Search.nMaxTimer = MIN(Search.nMaxTimer, Search.nProperTimer * 10);
         SearchMain(UCCI_MAX_DEPTH);

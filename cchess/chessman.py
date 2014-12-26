@@ -171,9 +171,8 @@ class Chessman(object):
         return True
         
     def can_move_to(self, x, y):
-        
         if not self.__can_move_check_default(x, y):
-            print "not self.can_move_default"
+            print "not self.__can_move_check_default",  x,  y
             return False
         
         return self.__can_move_checks[self.kind](x, y) 

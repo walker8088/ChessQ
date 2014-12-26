@@ -15,12 +15,12 @@ can be used without restriction.
 #include "../base/pipe.h"
 #include "ucci.h"  
 
-/* UCCIÖ¸Áî·ÖÎöÄ£¿éÓÉÈı¸÷UCCIÖ¸Áî½âÊÍÆ÷×é³É¡£
+/* UCCIæŒ‡ä»¤åˆ†ææ¨¡å—ç”±ä¸‰å„UCCIæŒ‡ä»¤è§£é‡Šå™¨ç»„æˆã€‚
  *
- * ÆäÖĞµÚÒ»¸ö½âÊÍÆ÷"BootLine()"×î¼òµ¥£¬Ö»ÓÃÀ´½ÓÊÕÒıÇæÆô¶¯ºóµÄµÚÒ»ĞĞÖ¸Áî
- * ÊäÈë"ucci"Ê±¾Í·µ»Ø"UCCI_COMM_UCCI"£¬·ñÔòÒ»ÂÉ·µ»Ø"UCCI_COMM_UNKNOWN"
- * Ç°Á½¸ö½âÊÍÆ÷¶¼µÈ´ıÊÇ·ñÓĞÊäÈë£¬Èç¹ûÃ»ÓĞÊäÈëÔòÖ´ĞĞ´ı»úÖ¸Áî"Idle()"
- * ¶øµÚÈı¸ö½âÊÍÆ÷("BusyLine()"£¬Ö»ÓÃÔÚÒıÇæË¼¿¼Ê±)ÔòÔÚÃ»ÓĞÊäÈëÊ±Ö±½Ó·µ»Ø"UCCI_COMM_UNKNOWN"
+ * å…¶ä¸­ç¬¬ä¸€ä¸ªè§£é‡Šå™¨"BootLine()"æœ€ç®€å•ï¼Œåªç”¨æ¥æ¥æ”¶å¼•æ“å¯åŠ¨åçš„ç¬¬ä¸€è¡ŒæŒ‡ä»¤
+ * è¾“å…¥"ucci"æ—¶å°±è¿”å›"UCCI_COMM_UCCI"ï¼Œå¦åˆ™ä¸€å¾‹è¿”å›"UCCI_COMM_UNKNOWN"
+ * å‰ä¸¤ä¸ªè§£é‡Šå™¨éƒ½ç­‰å¾…æ˜¯å¦æœ‰è¾“å…¥ï¼Œå¦‚æœæ²¡æœ‰è¾“å…¥åˆ™æ‰§è¡Œå¾…æœºæŒ‡ä»¤"Idle()"
+ * è€Œç¬¬ä¸‰ä¸ªè§£é‡Šå™¨("BusyLine()"ï¼Œåªç”¨åœ¨å¼•æ“æ€è€ƒæ—¶)åˆ™åœ¨æ²¡æœ‰è¾“å…¥æ—¶ç›´æ¥è¿”å›"UCCI_COMM_UNKNOWN"
  */
 static PipeStruct pipeStd;
 
@@ -31,24 +31,24 @@ static uint32_t dwCoordList[MAX_MOVE_NUM];
 
 static bool ParsePos(UcciCommStruct &UcciComm, char *lp) {
   int i;
-  // Ê×ÏÈÅĞ¶ÏÊÇ·ñÖ¸¶¨ÁËFEN´®
+  // é¦–å…ˆåˆ¤æ–­æ˜¯å¦æŒ‡å®šäº†FENä¸²
   if (StrEqvSkip(lp, "fen ")) {
     strcpy(szFen, lp);
     UcciComm.szFenStr = szFen;
-  // È»ºóÅĞ¶ÏÊÇ·ñÊÇstartpos
+  // ç„¶ååˆ¤æ–­æ˜¯å¦æ˜¯startpos
   } else if (StrEqv(lp, "startpos")) {
     UcciComm.szFenStr = "rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w";
-  // Èç¹ûÁ½Õß¶¼²»ÊÇ£¬¾ÍÁ¢¼´·µ»Ø
+  // å¦‚æœä¸¤è€…éƒ½ä¸æ˜¯ï¼Œå°±ç«‹å³è¿”å›
   } else {
     return false;
   }
-  // È»ºóÑ°ÕÒÊÇ·ñÖ¸¶¨ÁËºóĞø×Å·¨£¬¼´ÊÇ·ñÓĞ"moves"¹Ø¼ü×Ö
+  // ç„¶åå¯»æ‰¾æ˜¯å¦æŒ‡å®šäº†åç»­ç€æ³•ï¼Œå³æ˜¯å¦æœ‰"moves"å…³é”®å­—
   UcciComm.nMoveNum = 0;
   if (StrScanSkip(lp, " moves ")) {
     *(lp - strlen(" moves ")) = '\0';
-    UcciComm.nMoveNum = MIN((int) (strlen(lp) + 1) / 5, MAX_MOVE_NUM); // ÌáÊ¾£º"moves"ºóÃæµÄÃ¿¸ö×Å·¨¶¼ÊÇ1¸ö¿Õ¸ñºÍ4¸ö×Ö·û
+    UcciComm.nMoveNum = MIN((int) (strlen(lp) + 1) / 5, MAX_MOVE_NUM); // æç¤ºï¼š"moves"åé¢çš„æ¯ä¸ªç€æ³•éƒ½æ˜¯1ä¸ªç©ºæ ¼å’Œ4ä¸ªå­—ç¬¦
     for (i = 0; i < UcciComm.nMoveNum; i ++) {
-      dwCoordList[i] = *(uint32_t *) lp; // 4¸ö×Ö·û¿É×ª»»ÎªÒ»¸ö"uint32_t"£¬´æ´¢ºÍ´¦ÀíÆğÀ´·½±ã
+      dwCoordList[i] = *(uint32_t *) lp; // 4ä¸ªå­—ç¬¦å¯è½¬æ¢ä¸ºä¸€ä¸ª"uint32_t"ï¼Œå­˜å‚¨å’Œå¤„ç†èµ·æ¥æ–¹ä¾¿
       lp += sizeof(uint32_t) + 1;
     }
     UcciComm.lpdwMovesCoord = dwCoordList;
@@ -84,17 +84,17 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
     fflush(stdout);
   }
   if (false) {
-  // "IdleLine()"ÊÇ×î¸´ÔÓµÄUCCIÖ¸Áî½âÊÍÆ÷£¬´ó¶àÊıµÄUCCIÖ¸Áî¶¼ÓÉËüÀ´½âÊÍ£¬°üÀ¨£º
+  // "IdleLine()"æ˜¯æœ€å¤æ‚çš„UCCIæŒ‡ä»¤è§£é‡Šå™¨ï¼Œå¤§å¤šæ•°çš„UCCIæŒ‡ä»¤éƒ½ç”±å®ƒæ¥è§£é‡Šï¼ŒåŒ…æ‹¬ï¼š
 
-  // 1. "isready"Ö¸Áî
+  // 1. "isready"æŒ‡ä»¤
   } else if (StrEqv(lp, "isready")) {
     return UCCI_COMM_ISREADY;
 
-  // 2. "setoption <option> [<arguments>]"Ö¸Áî
+  // 2. "setoption <option> [<arguments>]"æŒ‡ä»¤
   } else if (StrEqvSkip(lp, "setoption ")) {
     if (false) {
 
-    // (1) "batch"Ñ¡Ïî
+    // (1) "batch"é€‰é¡¹
     } else if (StrEqvSkip(lp, "batch ")) {
       UcciComm.Option = UCCI_OPTION_BATCH;
       if (StrEqv(lp, "on")) {
@@ -103,9 +103,9 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.bCheck = true;
       } else {
         UcciComm.bCheck = false;
-      } // ÓÉÓÚ"batch"Ñ¡ÏîÄ¬ÈÏÊÇ¹Ø±ÕµÄ£¬ËùÒÔÖ»ÓĞÉè¶¨"on"»ò"true"Ê±²Å´ò¿ª£¬ÏÂÍ¬
+      } // ç”±äº"batch"é€‰é¡¹é»˜è®¤æ˜¯å…³é—­çš„ï¼Œæ‰€ä»¥åªæœ‰è®¾å®š"on"æˆ–"true"æ—¶æ‰æ‰“å¼€ï¼Œä¸‹åŒ
 
-    // (2) "debug"Ñ¡Ïî
+    // (2) "debug"é€‰é¡¹
     } else if (StrEqvSkip(lp, "debug ")) {
       UcciComm.Option = UCCI_OPTION_DEBUG;
       if (StrEqv(lp, "on")) {
@@ -116,7 +116,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.bCheck = false;
       }
 
-    // (3) "ponder"Ñ¡Ïî
+    // (3) "ponder"é€‰é¡¹
     } else if (StrEqvSkip(lp, "ponder ")) {
       UcciComm.Option = UCCI_OPTION_PONDER;
       if (StrEqv(lp, "on")) {
@@ -127,7 +127,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.bCheck = false;
       }
 
-    // (4) "usehash"Ñ¡Ïî
+    // (4) "usehash"é€‰é¡¹
     } else if (StrEqvSkip(lp, "usehash ")) {
       UcciComm.Option = UCCI_OPTION_USEHASH;
       if (StrEqv(lp, "off")) {
@@ -138,7 +138,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.bCheck = true;
       }
 
-    // (5) "usebook"Ñ¡Ïî
+    // (5) "usebook"é€‰é¡¹
     } else if (StrEqvSkip(lp, "usebook ")) {
       UcciComm.Option = UCCI_OPTION_USEBOOK;
       if (StrEqv(lp, "off")) {
@@ -149,7 +149,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.bCheck = true;
       }
 
-    // (6) "useegtb"Ñ¡Ïî
+    // (6) "useegtb"é€‰é¡¹
     } else if (StrEqvSkip(lp, "useegtb ")) {
       UcciComm.Option = UCCI_OPTION_USEEGTB;
       if (StrEqv(lp, "off")) {
@@ -160,29 +160,29 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.bCheck = true;
       }
 
-    // (7) "bookfiles"Ñ¡Ïî
+    // (7) "bookfiles"é€‰é¡¹
     } else if (StrEqvSkip(lp, "bookfiles ")) {
       UcciComm.Option = UCCI_OPTION_BOOKFILES;
       UcciComm.szOption = lp;
 
-    // (8) "egtbpaths"Ñ¡Ïî
+    // (8) "egtbpaths"é€‰é¡¹
     } else if (StrEqvSkip(lp, "egtbpaths ")) {
       UcciComm.Option = UCCI_OPTION_EGTBPATHS;
       UcciComm.szOption = lp;
 
-    // (9) "evalapi"Ñ¡Ïî£¬3.3ÒÔºó²»ÔÙÖ§³Ö
+    // (9) "evalapi"é€‰é¡¹ï¼Œ3.3ä»¥åä¸å†æ”¯æŒ
 
-    // (10) "hashsize"Ñ¡Ïî
+    // (10) "hashsize"é€‰é¡¹
     } else if (StrEqvSkip(lp, "hashsize ")) {
       UcciComm.Option = UCCI_OPTION_HASHSIZE;
       UcciComm.nSpin = Str2Digit(lp, 0, 1024);
 
-    // (11) "threads"Ñ¡Ïî
+    // (11) "threads"é€‰é¡¹
     } else if (StrEqvSkip(lp, "threads ")) {
       UcciComm.Option = UCCI_OPTION_THREADS;
       UcciComm.nSpin = Str2Digit(lp, 0, 32);
 
-    // (12) "promotion"Ñ¡Ïî
+    // (12) "promotion"é€‰é¡¹
     } else if (StrEqvSkip(lp, "promotion ")) {
       UcciComm.Option = UCCI_OPTION_PROMOTION;
       if (StrEqv(lp, "on")) {
@@ -193,7 +193,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.bCheck = false;
       }
 
-    // (13) "idle"Ñ¡Ïî
+    // (13) "idle"é€‰é¡¹
     } else if (StrEqvSkip(lp, "idle ")) {
       UcciComm.Option = UCCI_OPTION_IDLE;
       if (false) {
@@ -209,7 +209,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.Grade = UCCI_GRADE_NONE;
       }
 
-    // (14) "pruning"Ñ¡Ïî
+    // (14) "pruning"é€‰é¡¹
     } else if (StrEqvSkip(lp, "pruning ")) {
       UcciComm.Option = UCCI_OPTION_PRUNING;
       if (false) {
@@ -225,7 +225,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.Grade = UCCI_GRADE_LARGE;
       }
 
-    // (15) "knowledge"Ñ¡Ïî
+    // (15) "knowledge"é€‰é¡¹
     } else if (StrEqvSkip(lp, "knowledge ")) {
       UcciComm.Option = UCCI_OPTION_KNOWLEDGE;
       if (false) {
@@ -241,7 +241,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.Grade = UCCI_GRADE_LARGE;
       }
 
-    // (16) "randomness"Ñ¡Ïî
+    // (16) "randomness"é€‰é¡¹
     } else if (StrEqvSkip(lp, "randomness ")) {
       UcciComm.Option = UCCI_OPTION_RANDOMNESS;
       if (false) {
@@ -261,7 +261,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.Grade = UCCI_GRADE_NONE;
       }
 
-    // (17) "style"Ñ¡Ïî
+    // (17) "style"é€‰é¡¹
     } else if (StrEqvSkip(lp, "style ")) {
       UcciComm.Option = UCCI_OPTION_STYLE;
       if (false) {
@@ -275,21 +275,21 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
         UcciComm.Style = UCCI_STYLE_NORMAL;
       }
 
-    // (18) "newgame"Ñ¡Ïî
+    // (18) "newgame"é€‰é¡¹
     } else if (StrEqv(lp, "newgame")) {
       UcciComm.Option = UCCI_OPTION_NEWGAME;
 
-    // (19) ÎŞ·¨Ê¶±ğµÄÑ¡Ïî£¬ÓĞÀ©³äµÄÓàµØ
+    // (19) æ— æ³•è¯†åˆ«çš„é€‰é¡¹ï¼Œæœ‰æ‰©å……çš„ä½™åœ°
     } else {
       UcciComm.Option = UCCI_OPTION_UNKNOWN;
     }
     return UCCI_COMM_SETOPTION;
 
-  // 3. "position {<special_position> | fen <fen_string>} [moves <move_list>]"Ö¸Áî
+  // 3. "position {<special_position> | fen <fen_string>} [moves <move_list>]"æŒ‡ä»¤
   } else if (StrEqvSkip(lp, "position ")) {
     return ParsePos(UcciComm, lp) ? UCCI_COMM_POSITION : UCCI_COMM_UNKNOWN;
 
-  // 4. "banmoves <move_list>"Ö¸Áî£¬´¦ÀíÆğÀ´ºÍ"position ... moves ..."ÊÇÒ»ÑùµÄ
+  // 4. "banmoves <move_list>"æŒ‡ä»¤ï¼Œå¤„ç†èµ·æ¥å’Œ"position ... moves ..."æ˜¯ä¸€æ ·çš„
   } else if (StrEqvSkip(lp, "banmoves ")) {
     UcciComm.nBanMoveNum = MIN((int) (strlen(lp) + 1) / 5, MAX_MOVE_NUM);
     for (i = 0; i < UcciComm.nBanMoveNum; i ++) {
@@ -299,16 +299,16 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
     UcciComm.lpdwBanMovesCoord = dwCoordList;
     return UCCI_COMM_BANMOVES;
 
-  // 5. "go [ponder | draw] <mode>"Ö¸Áî
+  // 5. "go [ponder | draw] <mode>"æŒ‡ä»¤
   } else if (StrEqvSkip(lp, "go ")) {
     UcciComm.bPonder = UcciComm.bDraw = false;
-    // Ê×ÏÈÅĞ¶Ïµ½µ×ÊÇ"go"¡¢"go ponder"»¹ÊÇ"go draw"
+    // é¦–å…ˆåˆ¤æ–­åˆ°åº•æ˜¯"go"ã€"go ponder"è¿˜æ˜¯"go draw"
     if (StrEqvSkip(lp, "ponder ")) {
       UcciComm.bPonder = true;
     } else if (StrEqvSkip(lp, "draw ")) {
       UcciComm.bDraw = true;
     }
-    // È»ºóÅĞ¶ÏË¼¿¼Ä£Ê½
+    // ç„¶ååˆ¤æ–­æ€è€ƒæ¨¡å¼
     bGoTime = false;
     if (false) {
     } else if (StrEqvSkip(lp, "depth ")) {
@@ -320,12 +320,12 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
     } else if (StrEqvSkip(lp, "time ")) {
       UcciComm.nTime = Str2Digit(lp, 0, 2000000000);
       bGoTime = true;
-    // Èç¹ûÃ»ÓĞËµÃ÷ÊÇ¹Ì¶¨Éî¶È»¹ÊÇÉè¶¨Ê±ÏŞ£¬¾Í¹Ì¶¨Éî¶ÈÎª"UCCI_MAX_DEPTH"
+    // å¦‚æœæ²¡æœ‰è¯´æ˜æ˜¯å›ºå®šæ·±åº¦è¿˜æ˜¯è®¾å®šæ—¶é™ï¼Œå°±å›ºå®šæ·±åº¦ä¸º"UCCI_MAX_DEPTH"
     } else {
       UcciComm.Go = UCCI_GO_DEPTH;
       UcciComm.nDepth = UCCI_MAX_DEPTH;
     }
-    // Èç¹ûÊÇÉè¶¨Ê±ÏŞ£¬¾ÍÒªÅĞ¶ÏÊÇÊ±¶ÎÖÆ»¹ÊÇ¼ÓÊ±ÖÆ
+    // å¦‚æœæ˜¯è®¾å®šæ—¶é™ï¼Œå°±è¦åˆ¤æ–­æ˜¯æ—¶æ®µåˆ¶è¿˜æ˜¯åŠ æ—¶åˆ¶
     if (bGoTime) {
       if (false) {
       } else if (StrScanSkip(lp, " movestogo ")) {
@@ -334,7 +334,7 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
       } else if (StrScanSkip(lp, " increment ")) {
         UcciComm.Go = UCCI_GO_TIME_INCREMENT;
         UcciComm.nIncrement = Str2Digit(lp, 0, 999999);
-      // Èç¹ûÃ»ÓĞËµÃ÷ÊÇÊ±¶ÎÖÆ»¹ÊÇ¼ÓÊ±ÖÆ£¬¾ÍÉè¶¨Îª²½ÊıÊÇ1µÄÊ±¶ÎÖÆ
+      // å¦‚æœæ²¡æœ‰è¯´æ˜æ˜¯æ—¶æ®µåˆ¶è¿˜æ˜¯åŠ æ—¶åˆ¶ï¼Œå°±è®¾å®šä¸ºæ­¥æ•°æ˜¯1çš„æ—¶æ®µåˆ¶
       } else {
         UcciComm.Go = UCCI_GO_TIME_MOVESTOGO;
         UcciComm.nMovesToGo = 1;
@@ -342,19 +342,19 @@ UcciCommEnum IdleLine(UcciCommStruct &UcciComm, bool bDebug) {
     }
     return UCCI_COMM_GO;
 
-  // 6. "stop"Ö¸Áî
+  // 6. "stop"æŒ‡ä»¤
   } else if (StrEqv(lp, "stop")) {
     return UCCI_COMM_STOP;
 
-  // 7. "probe {<special_position> | fen <fen_string>} [moves <move_list>]"Ö¸Áî
+  // 7. "probe {<special_position> | fen <fen_string>} [moves <move_list>]"æŒ‡ä»¤
   } else if (StrEqvSkip(lp, "probe ")) {
     return ParsePos(UcciComm, lp) ? UCCI_COMM_PROBE : UCCI_COMM_UNKNOWN;
 
-  // 8. "quit"Ö¸Áî
+  // 8. "quit"æŒ‡ä»¤
   } else if (StrEqv(lp, "quit")) {
     return UCCI_COMM_QUIT;
 
-  // 9. ÎŞ·¨Ê¶±ğµÄÖ¸Áî
+  // 9. æ— æ³•è¯†åˆ«çš„æŒ‡ä»¤
   } else {
     return UCCI_COMM_UNKNOWN;
   }
@@ -368,13 +368,13 @@ UcciCommEnum BusyLine(UcciCommStruct &UcciComm, bool bDebug) {
       printf("info busyline [%s]\n", szLineStr);
       fflush(stdout);
     }
-    // "BusyLine"Ö»ÄÜ½ÓÊÕ"isready"¡¢"ponderhit"ºÍ"stop"ÕâÈıÌõÖ¸Áî
+    // "BusyLine"åªèƒ½æ¥æ”¶"isready"ã€"ponderhit"å’Œ"stop"è¿™ä¸‰æ¡æŒ‡ä»¤
     if (false) {
     } else if (StrEqv(szLineStr, "isready")) {
       return UCCI_COMM_ISREADY;
     } else if (StrEqv(szLineStr, "ponderhit draw")) {
       return UCCI_COMM_PONDERHIT_DRAW;
-    // ×¢Òâ£º±ØĞëÊ×ÏÈÅĞ¶Ï"ponderhit draw"£¬ÔÙÅĞ¶Ï"ponderhit"
+    // æ³¨æ„ï¼šå¿…é¡»é¦–å…ˆåˆ¤æ–­"ponderhit draw"ï¼Œå†åˆ¤æ–­"ponderhit"
     } else if (StrEqv(szLineStr, "ponderhit")) {
       return UCCI_COMM_PONDERHIT;
     } else if (StrEqv(szLineStr, "stop")) {

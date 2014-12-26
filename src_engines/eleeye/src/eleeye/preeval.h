@@ -23,12 +23,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef PREEVAL_H
 #define PREEVAL_H
 
-// À©Õ¹µÄ¾ÖÃæÔ¤ÆÀ¼Û½á¹¹
+// æ‰©å±•çš„å±€é¢é¢„è¯„ä»·ç»“æ„
 extern struct PreEvalStructEx {
   int vlBlackAdvisorLeakage, vlWhiteAdvisorLeakage;
   int vlHollowThreat[16], vlCentralThreat[16];
   int vlWhiteBottomThreat[16], vlBlackBottomThreat[16];
-  char cPopCnt16[65536]; // ¼ÓËÙPopCnt16µÄÊı×é£¬Ö»ĞèÒª³õÊ¼»¯Ò»´Î
+  char cPopCnt16[65536]; // åŠ é€ŸPopCnt16çš„æ•°ç»„ï¼Œåªéœ€è¦åˆå§‹åŒ–ä¸€æ¬¡
 } PreEvalEx;
 
 #endif
