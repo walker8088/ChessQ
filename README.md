@@ -7,13 +7,10 @@ ChessQ是一个中国象棋程序。目前功能还很简单，目标是做个�
   可以指定局面开始进行局面推演，支持纯手动操作、象棋引擎接管一方、以及象棋引擎全面掌管局面进行推演的操作。
   
 2.支持UCCI引擎
-  可以加载支持UCCI协议的引擎，如象棋巫师的“象眼”引擎（只有Windows版），Linux下面的“Harmless”引擎（https://github.com/timebug/harmless）
+  可以加载支持UCCI协议的引擎，目前可以跨平台支持象棋巫师的“eleeye”（象眼）引擎，“Harmless”引擎（https://github.com/timebug/harmless）
   
 
 ChessQ使用PyQT编写，开发环境使用的是Eric4，在windows下Python 2.7和PyQT 4.8 运行正常。
 
 
 欢迎加入一起完善这个小小的玩具，有任何问题和建议，欢迎反馈。
-
-
-
