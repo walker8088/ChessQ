@@ -1,0 +1,3 @@
+[submodule "src_engines/harmless"]
+	path = src_engines/harmless
+	url = https://github.com/timebug/harmless.git
