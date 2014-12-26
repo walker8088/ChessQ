@@ -1,0 +1,52 @@
+
+CPP  = g++
+CC   = gcc
+OBJ  = src/ucci.o utility/pipe.o src/board.o src/movement.o src/movemaker.o src/BitStronger.o src/hashnum.o src/openbook.o src/searcher.o src/evaluation.o 
+LINKOBJ  = src/ucci.o utility/pipe.o src/board.o src/movement.o src/movemaker.o src/BitStronger.o src/hashnum.o src/openbook.o src/searcher.o src/evaluation.o 
+
+CXXINCS =  
+BIN  = bitstronger
+
+CXXFLAGS = $(CXXINCS)  
+CFLAGS = $(INCS)  
+RM = rm -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before bitstronger all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CPP) $(LINKOBJ) -o "bitstronger" $(LIBS)
+
+src/ucci.o: src/ucci.cpp
+	$(CPP) -c src/ucci.cpp -o src/ucci.o $(CXXFLAGS)
+
+utility/pipe.o: utility/pipe.cpp
+	$(CPP) -c utility/pipe.cpp -o utility/pipe.o $(CXXFLAGS)
+
+src/board.o: src/board.cpp
+	$(CPP) -c src/board.cpp -o src/board.o $(CXXFLAGS)
+
+src/movement.o: src/movement.cpp
+	$(CPP) -c src/movement.cpp -o src/movement.o $(CXXFLAGS)
+
+src/movemaker.o: src/movemaker.cpp
+	$(CPP) -c src/movemaker.cpp -o src/movemaker.o $(CXXFLAGS)
+
+src/BitStronger.o: src/BitStronger.cpp
+	$(CPP) -c src/BitStronger.cpp -o src/BitStronger.o $(CXXFLAGS)
+
+src/hashnum.o: src/hashnum.cpp
+	$(CPP) -c src/hashnum.cpp -o src/hashnum.o $(CXXFLAGS)
+
+src/openbook.o: src/openbook.cpp
+	$(CPP) -c src/openbook.cpp -o src/openbook.o $(CXXFLAGS)
+
+src/searcher.o: src/searcher.cpp
+	$(CPP) -c src/searcher.cpp -o src/searcher.o $(CXXFLAGS)
+
+src/evaluation.o: src/evaluation.cpp
+	$(CPP) -c src/evaluation.cpp -o src/evaluation.o $(CXXFLAGS)
