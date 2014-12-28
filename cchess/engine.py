@@ -57,8 +57,10 @@ ON_POSIX = 'posix' in sys.builtin_module_names
 #-----------------------------------------------------#
 
 class UcciEngine(Thread):
-    def __init__(self):
+    def __init__(self, name = ''):
         super(UcciEngine, self).__init__()
+        
+        self.engine_name = name
         
         self.daemon  = True
         self.running = False

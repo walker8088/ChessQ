@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 import time
+import yaml
 
 # This is only needed for Python v2 but is harmless for Python v3.
 import sip
@@ -38,7 +39,7 @@ from QChessboardEditDlg import *
 #-----------------------------------------------------#    
 
 APP_NAME = u"ChessQ 中国象棋"
-
+APP_ENGINE_CONFIG_FILE = "engine.cfg"
 #-----------------------------------------------------#       
 
 class MainWindow(QMainWindow):
@@ -57,15 +58,6 @@ class MainWindow(QMainWindow):
         self.createStatusBar()
         self.createMainWidgets()
         
-        self.engine_path = "engines/eleeye/eleeye"
-        #self.engine_path = "engines/bitstronger/bitstronger"
-        #self.engine_path = "engines/harmless/harmless"
-        
-        self.engine = UcciEngine()
-        if not self.engine.load(self.engine_path):
-            QMessageBox.warning(self, APP_NAME, u"引擎加载失败.")
-            self.engine = None
-            
         #self.finalbook = FinalBook(u"epds/橘中秘_残局.EPD")
         #self.finalbook = FinalBook(u"challengers/基本杀法.EPD")
         
@@ -77,12 +69,10 @@ class MainWindow(QMainWindow):
     
         self.table.set_players(self.players)
         
-        if self.eRedBox.isChecked(): 
-            self.players[RED].bind_engine(self.engine)
+        self.engine = [None, None]
         
-        if self.eBlackBox.isChecked(): 
-            self.players[BLACK].bind_engine(self.engine)
-        
+        self.loadEngine()
+            
         self.timer = QTimer()
         self.timer.start(50)
         self.timer.timeout.connect(self.onIdleRun)
@@ -96,6 +86,42 @@ class MainWindow(QMainWindow):
         
         self.onInitBoard()
         
+    def loadEngine(self):
+        
+        with open(APP_ENGINE_CONFIG_FILE) as f:
+            try :
+                engine_info = yaml.load(f)
+                #print engine_info
+            except Exception as e:
+                QMessageBox.warning(self, APP_NAME, APP_ENGINE_CONFIG_FILE + u" 引擎配置信息错误：" + str(e))
+                return 
+        
+        primary_engine = engine_info["ucci_engine"]["primary"] 
+        engine = UcciEngine(primary_engine["name"])
+        if engine.load(primary_engine["path"]) :
+            self.engine[0] = engine 
+        else:
+            QMessageBox.warning(self, APP_NAME, u"主引擎加载失败：" + primary_engine["path"])
+            self.engine[0] = None
+        
+        scondary_engine = engine_info["ucci_engine"]["scondary"] 
+        
+        if not scondary_engine["load"]:
+            return 
+        
+        engine = UcciEngine(scondary_engine["name"])
+        if engine.load(scondary_engine["path"]) :
+            self.engine[1] = engine 
+        else:
+            QMessageBox.warning(self, APP_NAME, u"副引擎加载失败：" + scondary_engine["path"])
+            self.engine[1] = None
+        
+        if self.eRedBox.isChecked(): 
+            self.players[RED].bind_engine(self.engine[0])
+        
+        if self.eBlackBox.isChecked(): 
+            self.players[BLACK].bind_engine(self.engine[0])
+            
     def center(self):
         screen = QDesktopWidget().screenGeometry()
         size =  self.geometry()
@@ -105,15 +131,19 @@ class MainWindow(QMainWindow):
         if self.table.running:
             self.table.handle_player_msg()
         
-        if self.engine :
-                self.engineView.handle_engine_msg(self.engine)
+        if self.engine[0] :
+                self.engineView.handle_engine_msg(self.engine[0])
         
     def closeEvent(self, event):
         self.timer.stop()
         
-        if self.engine :
-            self.engine.quit()
-            self.engine = None
+        if self.engine[0] :
+            self.engine[0].quit()
+            self.engine[0] = None
+        
+        if self.engine[1] :
+            self.engine[1].quit()
+            self.engine[1] = None
             
         if self.table.running :
             self.table.stop_game()
@@ -151,14 +181,6 @@ class MainWindow(QMainWindow):
     
     def onStopGame(self) :
         self.table.stop_game()
-        
-    def onLoadEngine(self):
-        
-        if self.eRedBox.isChecked(): 
-            self.players[RED].bind_engine(self.engine)
-        
-        if self.eBlackBox.isChecked(): 
-            self.players[BLACK].bind_engine(self.engine)
                 
     def onFinalChallenge(self) :
     
@@ -185,14 +207,14 @@ class MainWindow(QMainWindow):
     def onRedBoxChanged(self, state):
         
         if state == Qt.Checked:
-            self.table.players[RED].bind_engine(self.engine)
+            self.table.players[RED].bind_engine(self.engine[0])
         else :
             self.table.players[RED].bind_engine(None)
             
     def onBlackBoxChanged(self, state):
             
         if state == Qt.Checked :
-            self.table.players[BLACK].bind_engine(self.engine)
+            self.table.players[BLACK].bind_engine(self.engine[0])
         else :
             self.table.players[BLACK].bind_engine(None)
         
@@ -247,9 +269,6 @@ class MainWindow(QMainWindow):
         self.stopGameAct = QAction(u"结束", self, 
                 statusTip=u"结束对局", triggered=self.onStopGame)
         
-        self.loadEngineAct = QAction(u"加载引擎", self, 
-                statusTip=u"加载象棋引擎", triggered=self.onLoadEngine)
-        
         self.exitAct = QAction("E&xit", self, shortcut="Ctrl+Q",
                 statusTip="Exit the application",
                 triggered=qApp.closeAllWindows)
@@ -288,7 +307,7 @@ class MainWindow(QMainWindow):
         self.gameToolbar.addAction(self.stopGameAct)
         
         self.engineToolbar = self.addToolBar("Engine")
-        self.engineToolbar.addAction(self.loadEngineAct)
+        #self.engineToolbar.addAction(self.loadEngineAct)
         
         self.eRedBox = QCheckBox(u"引擎执红")
         self.eRedBox.setChecked(False);
