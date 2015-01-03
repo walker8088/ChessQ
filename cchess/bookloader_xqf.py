@@ -31,13 +31,13 @@ def xqf_pos_2_board_pos(man_pos) :
 #-----------------------------------------------------#
 
 class XQFKey(object) :
-	def __init__(self):
-		pass
+        def __init__(self):
+                pass
                 
 #-----------------------------------------------------#
 
 class XQFBookBuff(object) :
-	def __init__(self, buffer):
+        def __init__(self, buffer):
                 self.buffer = buffer
                 self.index = 0
                 self.length = len(buffer)
@@ -78,15 +78,15 @@ class XQFBookBuff(object) :
 #-----------------------------------------------------#
 
 class XQFLoader(object):
-	def __init__(self):	
-			pass
-	
-	def init_decrypt_key(self, buff_str):
-		
+        def __init__(self):     
+                        pass
+        
+        def init_decrypt_key(self, buff_str):
+                
                 keys = XQFKey()
-		
-		key_buff =bytearray(buff_str)
-		
+                
+                key_buff =bytearray(buff_str)
+                
                 # Pascal code here from XQFRW.pas
                 # KeyMask   : dTByte;                         // 加密掩码
                 # ProductId : dTDWord;                        // 产品号(厂商的产品号)
@@ -161,49 +161,49 @@ class XQFLoader(object):
                 for i in range(len(keys.F32Keys)):
                         keys.F32Keys[i] &= keys.FKeyBytes[ i % 4]         
                 
-		return keys
-		
-	def init_chess_board(self,  man_str, keys = None):
-		
-		tmpMan =bytearray([0 for x in range(32)])
-		man_buff =bytearray(man_str)
-		
-		if keys == None:
-			for i in range(32) :
-				tmpMan[i] = man_buff[i]
-			return tmpMan
-			
-		for i in range(32) :
-			ucTmp = man_buff[i]
-			nTmp = (keys.KeyXY + i + 1) & 0x8000001F 
-			tmpMan[nTmp] = ucTmp
+                return keys
+                
+        def init_chess_board(self,  man_str, keys = None):
+                
+                tmpMan =bytearray([0 for x in range(32)])
+                man_buff =bytearray(man_str)
+                
+                if keys == None:
+                        for i in range(32) :
+                                tmpMan[i] = man_buff[i]
+                        return tmpMan
+                        
+                for i in range(32) :
+                        ucTmp = man_buff[i]
+                        nTmp = (keys.KeyXY + i + 1) & 0x8000001F 
+                        tmpMan[nTmp] = ucTmp
 
-		for i in range(32) :
-			tmpMan[i] = (tmpMan[i] - keys.KeyXY) & 0xFF
-			if (tmpMan[i] > 89) :
-				tmpMan[i] = 0xFF
-				
-		return tmpMan
-	
-	def decode_buff(self, keys, buff) : 
-		
+                for i in range(32) :
+                        tmpMan[i] = (tmpMan[i] - keys.KeyXY) & 0xFF
+                        if (tmpMan[i] > 89) :
+                                tmpMan[i] = 0xFF
+                                
+                return tmpMan
+        
+        def decode_buff(self, keys, buff) : 
+                
                 nPos = 0x400
                 de_buff =bytearray(buff)
                 
                 for i in range(len(buff)) :
                         KeyByte = keys.F32Keys[(nPos + i) % 32]
-			de_buff[i] = (de_buff[i] - KeyByte) & 0xFF
-		
+                        de_buff[i] = (de_buff[i] - KeyByte) & 0xFF
+                
                 return str(de_buff)
-		
-	def read_steps(self, step_buff, version,  chess_board, keys, parent_node = None):
+                
+        def read_steps(self, step_buff, version,  chess_board, keys, parent_node = None):
 
                 ucStep = step_buff.read_bytes(4)
                         
                 if ucStep == None :
-			return None
+                        return None
                         
-		comment_len = 0
+                comment_len = 0
                 has_next = False
                 has_var_step = False
                 
@@ -272,30 +272,30 @@ class XQFLoader(object):
                 
                 return step_node
                 
-	def load(self, file_name):
+        def load(self, file_name):
 
-		with open(file_name, "rb") as f:
-			contents = f.read()
-		
-		magic, version,  crypt_keys, ucBoard,\
-		ucUn2, ucRes,\
-		ucUn3, ucType,\
-		ucUn4, ucTitleLen,szTitle,\
-		ucUn5, ucMatchNameLen,szMatchName,\
-		ucDateLen, szDate,\
-		ucAddrLen, szAddr,\
-		ucRedPlayerNameLen, szRedPlayerName,\
-		ucBlackPlayerNameLen,szBlackPlayerName,\
-		ucTimeRuleLen,szTimeRule,\
-		ucRedTimeLen,szRedTime,\
-		ucBlackTime,szBlackTime, \
-		ucUn6,\
-		ucCommenerNameLen,szCommenerName,ucAuthorNameLen,szAuthorName,\
-		ucUn7 = struct.unpack("<2sB13s32s3sB12sB15sB63s64sB63sB15sB15sB15sB15sB63sB15sB15s32sB15sB15s528s",  contents[:0x400])
-		
-		if magic != "XQ":
-			return None
-		
+                with open(file_name, "rb") as f:
+                        contents = f.read()
+                
+                magic, version,  crypt_keys, ucBoard,\
+                ucUn2, ucRes,\
+                ucUn3, ucType,\
+                ucUn4, ucTitleLen,szTitle,\
+                ucUn5, ucMatchNameLen,szMatchName,\
+                ucDateLen, szDate,\
+                ucAddrLen, szAddr,\
+                ucRedPlayerNameLen, szRedPlayerName,\
+                ucBlackPlayerNameLen,szBlackPlayerName,\
+                ucTimeRuleLen,szTimeRule,\
+                ucRedTimeLen,szRedTime,\
+                ucBlackTime,szBlackTime, \
+                ucUn6,\
+                ucCommenerNameLen,szCommenerName,ucAuthorNameLen,szAuthorName,\
+                ucUn7 = struct.unpack("<2sB13s32s3sB12sB15sB63s64sB63sB15sB15sB15sB15sB63sB15sB15s32sB15sB15s528s",  contents[:0x400])
+                
+                if magic != "XQ":
+                        return None
+                
                 book = {}
                 book["source"] = "XQF"
                 book["version"] = version
@@ -313,11 +313,11 @@ class XQFLoader(object):
                         step_base_buff =XQFBookBuff(contents[0x400:]) 
                 elif (version == 0x12) :
                         keys = self.init_decrypt_key(crypt_keys)
-                        chess_mans = self.init_chess_board(ucBoard, keys)	
+                        chess_mans = self.init_chess_board(ucBoard, keys)       
                         step_base_buff = XQFBookBuff(self.decode_buff(keys, contents[0x400:])) 
-		else :
+                else :
                         raise Exception("version erorr")
-		
+                
                 chess_board = Chessboard()
                 chess_board.move_side = RED
                 
@@ -337,15 +337,15 @@ class XQFLoader(object):
                                 chess_board.create_chessman(chessman_pos_kinds[man_index], side, pos ) 
                  
                 step_node = self.read_steps(step_base_buff,  version,  chess_board,  keys)
-		book["steps"] = step_node
-		
+                book["steps"] = step_node
+                
                 return book
                 
 #-----------------------------------------------------#
 
 if __name__ == '__main__':
-		loader = XQFLoader()
-		book = loader.load("test\\test.xqf")
-		dump_info(book)
+                loader = XQFLoader()
+                book = loader.load("test\\test.xqf")
+                dump_info(book)
                 dump_steps(book["steps"])       
                 

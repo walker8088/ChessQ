@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-4.6.dtd">
 <!-- eric4 project file for project ChessQ -->
-<!-- Saved: 2014-12-26, 14:52:58 -->
+<!-- Saved: 2014-12-29, 12:04:17 -->
 <!-- Copyright (C) 2014 walker li, walker8088@gmail.com -->
 <Project version="4.6">
   <Language>en</Language>
@@ -32,6 +32,11 @@
     <Source>cchess_ui/QChess_rc.py</Source>
     <Source>cchess_ui/__init__.py</Source>
     <Source>ChessQ.pyw</Source>
+    <Source>engine.cfg</Source>
+    <Source>cchess/XqfFormat.txt</Source>
+    <Source>cchess/bookloader_cbf.py</Source>
+    <Source>cchess/bookloader_pgn.py</Source>
+    <Source>cchess/bookloader_xqf.py</Source>
   </Sources>
   <Forms>
   </Forms>
