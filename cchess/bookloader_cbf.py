@@ -65,7 +65,7 @@ class CBFLoader(object):
             
             p_from, p_to = decode_move(node.attrib["value"])
             
-            if not board.can_make_move(p_from, p_to):
+            if not board.can_make_move(p_from, p_to, color_limit = False):
                 raise Exception("Move Error")
             
             fen_before_move = board.get_fen() 

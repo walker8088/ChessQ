@@ -32,41 +32,6 @@ bishop_pos = (((2, 9), (6, 9), (0, 7), (4, 7), (9, 7), (2, 5), (6, 5)),
         
 #-----------------------------------------------------#
 
-def get_kind(fen_ch):
-    if fen_ch in ['k', 'K']:
-        return KING
-    elif fen_ch in ['a', 'A']:
-        return ADVISOR
-    elif fen_ch in ['b', 'B']:
-        return BISHOP
-    elif fen_ch in ['n', 'N']:
-        return KNIGHT
-    elif fen_ch in ['r', 'R']:
-        return ROOK
-    elif fen_ch in ['c', 'C']:
-        return CANNON
-    elif fen_ch in ['p', 'P']:
-        return PAWN
-    else:
-        return NONE
-
-def get_char(kind, color):
-    if kind is KING:
-        return ['K', 'k'][color]
-    elif kind is ADVISOR:
-        return ['A', 'a'][color]
-    elif kind is BISHOP:
-        return ['B', 'b'][color]
-    elif kind is KNIGHT:
-        return ['N', 'n'][color]
-    elif kind is ROOK:
-        return ['R', 'r'][color]
-    elif kind is CANNON:
-        return ['C', 'c'][color]
-    elif kind is PAWN:
-        return ['P', 'p'][color]
-    else:
-        return ''
 
 #-----------------------------------------------------#
 
@@ -233,6 +198,7 @@ class Chessman(object):
             return False
         
         old_man = self.board.at_pos(x, y)
+        
         if old_man and (old_man.color == self.color) :
             return False
             

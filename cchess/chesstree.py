@@ -47,14 +47,9 @@ class StepNode(LabelNode):
         self.fen_str_after_step = fen_str_after_step
         self.move = move
 
-#-----------------------------------------------------# 
-       
+#-----------------------------------------------------#
 def dump_info(book)  :   
-        
-        #for key in book:
-        #        if key != "steps":
-        #                print key, book[key]
-        
+       
         print
         print  u"格式：", book["source"]
         print  u"版本：", book["version"]
@@ -66,8 +61,10 @@ def dump_info(book)  :
         print  u"结果：", result_str[book["result"]]
         print  u"解说：", book["narrator"]
         print  u"作者：", book["author"]
+        print  "fen",       book["fen_str"]
+        print  "moves",  book["moves"]
         print
-        
+    
 #-----------------------------------------------------#
 
 def dump_steps(step_node) :        
@@ -98,4 +95,3 @@ def dump_steps(step_node) :
                         step_node = None
                 
                 count += 1
-        

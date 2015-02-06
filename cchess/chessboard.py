@@ -30,9 +30,11 @@ class Chessboard(object):
         self.clear()
 
     def clear(self):
-        
+      
         self._board = {}
         self.move_side = None
+        self.round = 0
+        self.non_kill_move_steps = 0
         
     def at_pos(self, x, y):
         
@@ -49,6 +51,9 @@ class Chessboard(object):
             return None
             
         self.move_side = 1 - self.move_side
+        
+        if self.move_side == RED :
+                self.round += 1
         
         return self.move_side
         
@@ -157,7 +162,7 @@ class Chessboard(object):
         else:
             fen_str += ' w'
             
-        fen_str += ' - - 0 1'
+        fen_str += ' - - 0 %d' %(self.round)
 
         return fen_str
 
@@ -168,8 +173,6 @@ class Chessboard(object):
         if fen_str == '':
                 return
 
-        #pc_code = [[16, 17, 19, 21, 23, 25, 27], [32, 33, 35, 37, 39, 41, 43]]
-        
         x = y = 0
 
         for i in range(0, len(fen_str)):
@@ -203,15 +206,20 @@ class Chessboard(object):
                         self.create_chessman(kind, BLACK, (x, y))
                         
                     x += 1
-
-        if fen_str[i+1] == 'b':
-             self.move_side = BLACK
-        else:
-             self.move_side = RED            
-
-    def can_make_move(self, p_from, p_to) :
         
-        #print p_from,  p_to
+        fens = fen_str.split() 
+        
+        if (len(fens) >= 2) and (fens[1] == 'b') :
+                 self.move_side = BLACK
+        else:
+                self.move_side = RED            
+        
+        if len(fens) >= 6  :
+                self.round = int(fens[5])
+        else:
+                self.round = 1      
+        
+    def can_make_move(self, p_from, p_to, color_limit = True) :
         
         if (p_from[0] == p_to[0]) and (p_from[1] == p_to[1]):
             print "no move"
@@ -222,35 +230,26 @@ class Chessboard(object):
             return False 
         
         chessman = self._board[p_from]
-        if chessman.color != self.move_side:
-            print "not color", chessman.color, self.move_side
+        
+        if (chessman.color != self.move_side)  and color_limit :
+            print chessman.color, "not move side ", self.move_side
             return False
             
         if not chessman.can_move_to(p_to[0],  p_to[1]):
             print "can not move"
             return False
-        
-        """
-        chessman_ = None
-        if p_to in self._board.keys():
-            chessman_ = self._board[p_to]
-        self._do_move(p_from, p_to, chessman_)         
-        result = not self.check(self.move_side)
-        self._undo_move(p_from, p_to, chessman_)
-        
-        return result
-        """
-        
+          
         return True
         
-    def make_step_move(self, p_from, p_to):
+    def make_step_move(self, p_from, p_to, color_limit = True):
         
-        #print "step move", p_from,  p_to
-        if not self.can_make_move(p_from, p_to):
+        if not self.can_make_move(p_from, p_to, color_limit):
             return False
             
-        self._do_move(p_from, p_to)
+        killed_man = self._do_move(p_from, p_to)
         
+        self.non_kill_move_steps = 0 if killed_man else (self.non_kill_move_steps + 1) 
+               
         return True
                 
     
@@ -267,7 +266,7 @@ class Chessboard(object):
         
         return killed_man
         
-    def _undo_move(self, p_from, p_to, chessman_):
+    def __undo_move(self, p_from, p_to, chessman_):
         chessman = self._board[p_to]
         
         chessman.x, chessman.y = p_from
@@ -325,5 +324,31 @@ class Chessboard(object):
                 new_mans.append(man)
         
         return new_mans 
+  
+#-----------------------------------------------------#
+  
+def  moves_to_chinese_moves(fen_str, moves_str) :
+        board = Chessboard()
+        board.init_board(fen_str)
         
-    
+        moves = moves_str.split()
+        chinese_moves = []
+        
+        for item in moves :
+                if item[0] not in ["a", "b", "c", "d", "e", "f", "g", "h", "i"] :
+                        chinese_moves.append(item)
+                        continue
+                move_from, move_to = str_to_move(item)
+                if board.can_make_move(move_from, move_to,  color_limit = False) :
+                        chinese_move_str = board.std_move_to_chinese_move(move_from, move_to)
+                        chinese_moves.append(chinese_move_str)
+                        board.make_step_move(move_from, move_to,  color_limit = False)
+                        #board.turn_side()
+                else :                
+                        print  move_from, move_to
+                        break
+                        chinese_moves.append(item)
+                        continue
+                        
+        return " ".join(chinese_moves)       
+         

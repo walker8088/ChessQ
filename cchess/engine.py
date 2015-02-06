@@ -29,28 +29,6 @@ from common import *
 
 #Engine status   
 (BOOTING, READY, WAITING, INFO_MOVE, MOVE, DEAD, UNKNOWN, BOARD_RESET) = range(8)
-
-def move_to_str(p_from, p_to):
-    
-    x, y = p_from 
-    x_, y_ = p_to
-    
-    move_str = ''
-    move_str += chr(ord('a') + x)
-    move_str += str(9 - y)
-    move_str += chr(ord('a') + x_)
-    move_str += str(9 - y_)
-    
-    return move_str
-
-def str_to_move(move_str):
-    
-    m00 = ord(move_str[0]) - ord('a')
-    m01 = ord('9') - ord(move_str[1])
-    m10 = ord(move_str[2]) - ord('a')
-    m11 = ord('9') - ord(move_str[3])
-    
-    return ((m00,m01),(m10, m11))
     
 ON_POSIX = 'posix' in sys.builtin_module_names
 
@@ -73,7 +51,7 @@ class UcciEngine(Thread):
         self.move_queue = Queue()
         self.move_info_queue = Queue()
         
-        self.search_depth = 7
+        self.search_depth = 12
         
     def run(self) :
         
@@ -124,6 +102,9 @@ class UcciEngine(Thread):
                     move_info = {}    
                     info_list = output[5:].split()
                     
+                    if len(info_list) < 5:
+                        return
+                        
                     move_info["fen_str"] = self.last_fen_str
                     move_info[info_list[0]] =  info_list[1] #depth 6
                     move_info[info_list[2]] =  info_list[3] #score 4
@@ -161,9 +142,17 @@ class UcciEngine(Thread):
         
         time.sleep(0.2)
             
-    def go_from(self, fen_str, ban_move = None):
+    def go_from(self, fen_str, move_history = None, ban_move = None):
         
-        self.send_cmd('position fen ' + fen_str)
+        if move_history :
+                cmds = 'position fen ' + fen_str + ' moves ' + move_history 
+        else:
+               cmds = 'position fen ' + fen_str
+        
+        #print 
+        #print cmds
+        
+        self.send_cmd(cmds)
         
         if ban_move :
                 self.send_cmd('banmoves ' + ban_move)
@@ -186,10 +175,12 @@ class UcciEngine(Thread):
             print "error in send cmd", e
                 
     def start_game(self) :
+        self.move_queue = Queue()
+        self.move_info_queue = Queue()
         self.send_cmd("setoption newgame")
                 
     def stop_game(self):
-        pass
+       self.send_cmd("stop")
        
     def get_next_move(self) :
         try:
@@ -201,10 +192,10 @@ class UcciEngine(Thread):
 #-----------------------------------------------------#
 
 if __name__ == '__main__':
-    engine = UcciEngine("ucci_engine\harmless\\harmless")
-    engine.load()
+    engine = UcciEngine()
+    engine.load("..\\engine\\harmless\\harmless")
     time.sleep(1)
-    engine.new_game()
+    engine.start_game()
     engine.quit()
     time.sleep(1)
     #print engine.ids
