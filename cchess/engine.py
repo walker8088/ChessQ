@@ -51,7 +51,7 @@ class UcciEngine(Thread):
         self.move_queue = Queue()
         self.move_info_queue = Queue()
         
-        self.search_depth = 12
+        self.search_depth = 8
         
     def run(self) :
         
@@ -70,7 +70,7 @@ class UcciEngine(Thread):
     def __handle_engine_out_line(self, output) :
                 
         #print "<<<", output
-        
+    
         outputs_list = output.split()
         resp_id = outputs_list[0]
         
@@ -142,20 +142,14 @@ class UcciEngine(Thread):
         
         time.sleep(0.2)
             
-    def go_from(self, fen_str, move_history = None, ban_move = None):
+    def go_from(self, fen_for_engine, fen_str):
         
-        if move_history :
-                cmds = 'position fen ' + fen_str + ' moves ' + move_history 
-        else:
-               cmds = 'position fen ' + fen_str
-        
-        #print 
-        #print cmds
-        
+        cmds = 'position fen ' + fen_for_engine
+       
         self.send_cmd(cmds)
         
-        if ban_move :
-                self.send_cmd('banmoves ' + ban_move)
+        #if ban_move :
+        #        self.send_cmd('banmoves ' + ban_move)
         
         self.last_fen_str = fen_str
         self.move_queue = Queue()

@@ -21,6 +21,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import time
 import yaml
 
+from pubsub import pub
+
 # This is only needed for Python v2 but is harmless for Python v3.
 import sip
 sip.setapi('QVariant', 2)
@@ -38,8 +40,10 @@ from QChessboardEditDlg import *
 
 #-----------------------------------------------------#    
 
+BOOK, EXERCISE, KILLING = range(3)
+
 APP_NAME = u"ChessQ 中国象棋"
-APP_ENGINE_CONFIG_FILE = "engine.cfg"
+APP_CONFIG_FILE = "ChessQ.cfg"
 #-----------------------------------------------------#       
 
 class MainWindow(QMainWindow):
@@ -53,14 +57,19 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(APP_NAME)
         
         self.createActions()
-        #self.createMenus()
+        self.createMenus()
         self.createToolBars()
         self.createStatusBar()
         self.createMainWidgets()
         
-        #self.finalbook = FinalBook(u"epds/橘中秘_残局.EPD")
-        #self.finalbook = FinalBook(u"challengers/基本杀法.EPD")
-        
+        with open(APP_CONFIG_FILE) as f:
+            try :
+                self.config = yaml.load(f)
+            except Exception as e:
+                QMessageBox.warning(self, APP_NAME, APP_CONFIG_FILE + u" 配置文件错误：" + str(e))
+                self.config = None
+                return 
+
         self.table = ChessTable(self, self.board)
         
         self.players = [ UiChessPlayer(self.table), 
@@ -84,38 +93,37 @@ class MainWindow(QMainWindow):
         
         self.readSettings()
         
-        self.onInitBoard()
+        self.mode = EXERCISE 
         
+        self.final_book = FinalBook()
+        self.final_book.load_from_qcd(".\chessbooks\\final_book.qcd")
+        self.finalbookView.show_book(self.final_book)
+        
+        pub.subscribe(self.on_step_move, "step_move")
+        
+        self.onInitBoard()
+            
     def loadEngine(self):
         
-        with open(APP_ENGINE_CONFIG_FILE) as f:
-            try :
-                engine_info = yaml.load(f)
-                #print engine_info
-            except Exception as e:
-                QMessageBox.warning(self, APP_NAME, APP_ENGINE_CONFIG_FILE + u" 引擎配置信息错误：" + str(e))
-                return 
-        
-        primary_engine = engine_info["ucci_engine"]["primary"] 
+        primary_engine = self.config["ucci_engine"]["primary"] 
         engine = UcciEngine(primary_engine["name"])
         if engine.load(primary_engine["path"]) :
             self.engine[0] = engine 
+            self.is_engine_profile = True
         else:
             QMessageBox.warning(self, APP_NAME, u"主引擎加载失败：" + primary_engine["path"])
             self.engine[0] = None
         
-        scondary_engine = engine_info["ucci_engine"]["scondary"] 
+        scondary_engine = self.config["ucci_engine"]["scondary"] 
         
-        if not scondary_engine["load"]:
-            return 
-        
-        engine = UcciEngine(scondary_engine["name"])
-        if engine.load(scondary_engine["path"]) :
-            self.engine[1] = engine 
-        else:
-            QMessageBox.warning(self, APP_NAME, u"副引擎加载失败：" + scondary_engine["path"])
-            self.engine[1] = None
-        
+        if scondary_engine["load"] :            
+            engine = UcciEngine(scondary_engine["name"])
+            if engine.load(scondary_engine["path"]) :
+                self.engine[1] = engine 
+            else:
+                QMessageBox.warning(self, APP_NAME, u"副引擎加载失败：" + scondary_engine["path"])
+                self.engine[1] = None
+            
         if self.eRedBox.isChecked(): 
             self.players[RED].bind_engine(self.engine[0])
         
@@ -158,9 +166,11 @@ class MainWindow(QMainWindow):
                 self.book = load_book(file_name)      
                 if self.book  :
                         self.bookView.show_book(self.book)
-        
+                self.mode = BOOK
+                
     def onInitBoard(self):
-        self.board.init_board()
+        self.moce = EXERCISE
+        self.onStartGame()
         
     def onEditBoard(self):
         
@@ -169,10 +179,12 @@ class MainWindow(QMainWindow):
         
         self.board.init_board(new_fen)
         
-    def onSelectBoard(self):
-        pass
-        
     def onStartGame(self):
+        
+        self.engineView.setVisible(True)
+        self.finalbookView.setVisible(False)
+        
+        self.table.new_game()
         self.table.start_game()
     
     def onUndoMove(self) :
@@ -182,24 +194,36 @@ class MainWindow(QMainWindow):
     def onStopGame(self) :
         self.table.stop_game()
                 
-    def onFinalChallenge(self) :
+    def onEndGameChallenge(self) :
     
-        curr_book = self.finalbook.curr_book()
+        self.engineView.setVisible(False)
+        self.finalbookView.setVisible(True)
         
-        self.setWindowTitle(APP_NAME + curr_book[0])
+        self.do_final_book( self.final_book.index )
+    
+    def do_final_book(self, book_index) :
+        
+        self.final_book.index = book_index
+        self.curr_book = self.final_book.curr_book()
+        self.setWindowTitle(APP_NAME + "  --  " + self.curr_book.name)
         self.bookView.clear()
-        
-        self.table.new_game((player1, player2), curr_book[1])
+        self.finalbookView.book_view.selectRow(book_index)
+        self.mode = KILLING
+
+        self.table.new_game( self.curr_book.fen)
         self.table.start_game()
+    
+    def on_step_move(self, move_log) :
         
-    def notify_move_from_table(self, move_step) :
-        pass
-        #self.bookView.append_move(move_step)
+        self.bookView.append_move(move_log)
+        
+        if self.engine[0] and self.is_engine_profile :
+            #fen_for_engine =
+            self.engine[0].go_from(move_log.fen_for_engine(), move_log.fen_after_move)
        
     def notify_unmove_from_table(self, move_step) :
         pass
         
-    
     def onFlipBoardChanged(self, state):
         
         self.board.setFlipBoard(state)
@@ -218,50 +242,51 @@ class MainWindow(QMainWindow):
         else :
             self.table.players[BLACK].bind_engine(None)
         
-    def onInfoBoxChanged(self, state):
-        pass
+    def onEngineInfoBoxChanged(self, state):
+         
+         self.is_engine_profile = True if state == Qt.Checked else False
         
 
     def about(self):
         QMessageBox.about(self, u"关于ChessQ",
-                ""
-                "")
+                u"ChessQ 是一个象棋软, 目标是做一个跨平台版本的象棋巫师，欢迎任何改进\n本软件采用GPL 3协议授权\n作者walker li (walker8088@gmail.com)\n"
+                )
         
     def on_game_over(self, over_side):
         
         self.table.stop_game()
         
-        if over_side == BLACK:
-            result = u"棋局结束，黑方被将死！"
-            #self.finalbook.next_book()
-            #print u"挑战成功", self.finalbook.index
-        else:
-            result = u"棋局结束，红方被将死！"
-        
-        QMessageBox.warning(self,  APP_NAME, result)
+        if self.mode == KILLING :        
+            if over_side == BLACK:
+                result = u"棋局结束，黑方被将死。挑战成功，继续挑战！"
+                self.curr_book.done = True
+                self.final_book.index += 1    
+            else:
+                result = u"棋局结束，红方被将死。再接再励！"
             
-            #QMessageBox.warning(self,  APP_NAME, u"挑战失败!")
-            #self.finalbook.next_book()
+            QMessageBox.warning(self,  APP_NAME, result)
             
-            #print u"挑战失败", self.finalbook.index
+            self.do_final_book( self.final_book.index)
+             
+        elif self.mode == EXERCISE :
+           result = u"棋局结束，黑方被将死。" if over_side == BLACK else  u"棋局结束，红方被将死。"
+           QMessageBox.warning(self,  APP_NAME, result)
             
-        #self.onFinalChallenge()
-        
     def createActions(self):
-        self.loadBookAct = QAction(u"加载棋谱", self, 
+        self.loadBookAct = QAction(u"棋谱管理", self, 
                 statusTip=u"新对局", triggered=self.onLoadBook)
         
-        self.initBoardAct = QAction(u"初始盘面", self, 
+        self.initBoardAct = QAction(u"对局练习", self, 
                 statusTip=u"新对局", triggered=self.onInitBoard)
         
-        self.editBoardAct = QAction(u"编辑盘面", self, 
-                statusTip=u"局面编辑", triggered=self.onEditBoard)
+        self.editBoardAct = QAction(u"自定对局", self, 
+                statusTip=u"编辑局面", triggered=self.onEditBoard)
         
-        self.selectBoardAct = QAction(u"残局选择", self, 
-                statusTip=u"残局选择", triggered=self.onSelectBoard)
+        self.selectBoardAct = QAction(u"杀法练习", self, 
+                statusTip=u"残局选择", triggered=self.onEndGameChallenge)
         
-        self.startGameAct = QAction(u"开始", self, 
-                statusTip=u"开始对局", triggered=self.onStartGame)
+        self.startGameAct = QAction(u"起始局面", self, 
+                statusTip=u"开始局面", triggered=self.onStartGame)
         
         self.undoMoveAct = QAction(u"悔棋", self, 
                 statusTip=u"悔棋", triggered=self.onUndoMove)
@@ -269,7 +294,7 @@ class MainWindow(QMainWindow):
         self.stopGameAct = QAction(u"结束", self, 
                 statusTip=u"结束对局", triggered=self.onStopGame)
         
-        self.exitAct = QAction("E&xit", self, shortcut="Ctrl+Q",
+        self.exitAct = QAction(u"结束退出", self, shortcut="Ctrl+Q",
                 statusTip="Exit the application",
                 triggered=qApp.closeAllWindows)
 
@@ -296,15 +321,18 @@ class MainWindow(QMainWindow):
         self.boardToolbar.addAction(self.editBoardAct) 
         self.boardToolbar.addAction(self.selectBoardAct)
         
+        #self.killingToolbar = self.addToolBar("Killing")
+         
         self.flipBoardBox = QCheckBox(u"反转棋盘")
         self.flipBoardBox.stateChanged.connect(self.onFlipBoardChanged)
         
-        self.boardToolbar.addWidget(self.flipBoardBox)
         
         self.gameToolbar = self.addToolBar("Game")
+        self.gameToolbar.addWidget(self.flipBoardBox)
+       
         self.gameToolbar.addAction(self.startGameAct)
         self.gameToolbar.addAction(self.undoMoveAct)
-        self.gameToolbar.addAction(self.stopGameAct)
+        #self.gameToolbar.addAction(self.stopGameAct)
         
         self.engineToolbar = self.addToolBar("Engine")
         #self.engineToolbar.addAction(self.loadEngineAct)
@@ -317,18 +345,15 @@ class MainWindow(QMainWindow):
         self.eBlackBox.setChecked(True);
         self.eBlackBox.stateChanged.connect(self.onBlackBoxChanged)
         
-        self.eInfoBox = QCheckBox(u"引擎分析")
-        self.eInfoBox.setChecked(True);
-        self.eInfoBox.stateChanged.connect(self.onInfoBoxChanged)
+        self.engineInfoBox = QCheckBox(u"引擎分析")
+        self.engineInfoBox.setChecked(True);
+        self.engineInfoBox.stateChanged.connect(self.onEngineInfoBoxChanged)
          
         self.engineToolbar.addWidget(self.eRedBox)
         self.engineToolbar.addWidget(self.eBlackBox)
-        self.engineToolbar.addWidget(self.eInfoBox)
+        self.engineToolbar.addWidget(self.engineInfoBox)
         
-        #self.engineToolbar.addAction() 
-        #self.engineToolbar.addAction()
-
-        #self.toolbar.addAction(self.exitAct)
+        self.engineToolbar.addAction(self.exitAct)
 
     def createMainWidgets(self):
         
@@ -339,9 +364,14 @@ class MainWindow(QMainWindow):
         self.bookView = QChessBookWidget(self)
         self.engineView = QChessEngineWidget(self)
         
+        self.finalbookView = QFinalBookWidget(self)
+        self.finalbookView.setVisible(False)
+        
         self.addDockWidget(Qt.LeftDockWidgetArea, self.bookView)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.finalbookView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.engineView)
-        #self.tabifyDockWidget(self.bookView, self.engineView);
+        
+        
         self.bookView.raise_()
         
     def createStatusBar(self):

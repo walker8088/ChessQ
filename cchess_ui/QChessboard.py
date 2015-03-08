@@ -78,7 +78,7 @@ class QChessboard(Chessboard, QWidget):
         return QChessman(self, kind, color, pos)
         
         
-    def make_step_move(self, p_from, p_to):
+    def make_log_step_move(self, p_from, p_to):
 
         self.last_selected = p_from
         
@@ -90,13 +90,15 @@ class QChessboard(Chessboard, QWidget):
         while len(self.move_steps_show) > 0:
             qApp.processEvents() 
         
-        Chessboard.make_step_move(self, p_from, p_to)
+        move_log = Chessboard.make_log_step_move(self, p_from, p_to)
         
         self.update()
         
         #self.last_move = p_to
         self.last_selected = None
-    
+        
+        return move_log
+        
     def logic_to_board(self,  x,  y):
         
         if self.flip_board :
@@ -104,14 +106,14 @@ class QChessboard(Chessboard, QWidget):
             y = 9 - y 
             
         board_x = BORDER + x * SPACE + self.start_x
-        board_y = BORDER + y * SPACE + self.start_y
+        board_y = BORDER + (9 - y) * SPACE + self.start_y
         
         return board_x,  board_y     
     
     def board_to_logic(self, bx,  by):
         
         x = (bx - BORDER - self.start_x) / SPACE
-        y = (by - BORDER - self.start_y) / SPACE
+        y = 9 - ((by - BORDER - self.start_y) / SPACE)
         
         if self.flip_board :
             x = 8 - x

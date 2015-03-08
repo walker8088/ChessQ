@@ -18,20 +18,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
 #-----------------------------------------------------#
+class EndGameItem(object) :
+        def __init__(self, level, name, fen,  moves) :
+                self.level = level
+                self.name = name
+                self.fen = fen
+                self.moves = moves
+                self.done = False
+                
+#-----------------------------------------------------#
 
 class FinalBook(object):
-    def __init__(self, epd_file):
+    def __init__(self):
         self.books = []
-        self.load_from_epd(epd_file)
-        self.index = 0
+        self.index = -1
             
-    def load_from_epd(self, epd_file):
-        with open(epd_file) as f:
+    def load_from_qcb(self, qcb_file):
+        self.books = []
+        with open(qcb_file) as f:
             lines = f.readlines()
         for line in lines:
-            items = line.strip().split(";")
-            self.books.append((items[1].decode("utf-8"), items[0]))
-        
+            items = line.strip().decode("utf-8").split(" ")
+            fen = " ".join(items[2:4])
+            moves = " ".join(items[4:])
+            it = EndGameItem(int(items[0]), items[1], fen, items[5])
+            self.books.append(it)
+        self.index = 0
+    
+    def load_from_qcd(self, qcd_file):
+        self.books = []
+        with open(qcd_file) as f:
+            lines = f.readlines()
+         
+        index = 1   
+        for line in lines:
+            items = line.strip().decode("utf-8").split(" ")
+            fen = " ".join(items[1:4])
+            moves = " ".join(items[4:])
+            name = u"第 %d 局" % index 
+            it = EndGameItem(int(items[0]),  name, fen, moves)
+            self.books.append(it)
+            index += 1
+        self.index = 30
+         
     def  curr_book(self):
         return self.books[self.index]
     

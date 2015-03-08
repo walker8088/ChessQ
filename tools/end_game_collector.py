@@ -24,8 +24,7 @@ sys.path.append("..\\")
 from cchess import *
 
 file_errors =[]
-win_books = []
-peace_books = []
+books = []
 files = []
 files = [u'D:\\05_棋谱\\0_残局整理\\竹香斋\\野马操田.XQF']
 #files = [u'D:\\05_棋谱\\0_残局整理\\隐秀斋象戏谱\\作茧自缚.XQF']
@@ -36,17 +35,18 @@ with open("error_file.txt", "rb") as f:
                 files.append(line.strip().decode("utf-8"))
 '''                
 #try:
-for root, dirs, files in os.walk(u"D:\\05_棋谱\\0_残局整理\\适情雅趣550局全本（徐家亮 诠注本）\\先胜局"):
+for root, dirs, files in os.walk(u"D:\\05_棋谱\\0_残局整理\\适情雅趣550局\\先胜局"):
         for file in files :
                 file_name = os.path.join(root, file)
                 name, ext = os.path.splitext(file)
-                
+                names = name.split()
+                name = "_".join(names)
                 if ext.lower() not in [".xqf"] :
                         print "PASSED ", file_name
                         continue
                 print "processing",  file_name
                 loader = XQFLoader()
-		book = loader.load(file_name, read_comment = True, read_branch = True)
+		book = loader.load(file_name, read_comment = False, read_branch = True)
                 if book and book["moves"]:
                         '''
                         try :
@@ -54,39 +54,29 @@ for root, dirs, files in os.walk(u"D:\\05_棋谱\\0_残局整理\\适情雅趣55
                         except :
                                 pass
                         '''        
-                        fens = book["fen_str"].split()
-                        
-                        move_str = book["moves"] 
+                        fens = " ".join(book["fen_str"].split()[:2])
+                        move_str = book["moves"]
+                        moves = branch_split(move_str)[0]               
+                        move_len = "%02d" % ((len(moves.split()) +1) // 2)         
                         #chinese_move_str = moves_to_chinese_moves( book["fen_str"], move_str)
-                        #book_str = " ".join([name, fens[0], str(book['result']), chinese_move_str])
-                        book_str = name  + ' ' + move_str
-                        if (book["result"] == 1) : 
-                                win_books.append(book_str)
-                        elif (book["result"] == 3) :
-                                peace_books.append(book_str)
-                        else :
-                                print  "Result Error", file_name
-                                file_errors.append(file_name)
+                        book_str = " ".join([move_len, name, fens, moves])
+                        #book_str = name  + ' ' + fens
+                        books.append(book_str)
                         
 #except Exception as e:
 #        import traceback
 #        traceback.print_exc()
         #print  "error", e
 
-print file_errors
+#print file_errors
                 
-with open("error_file.txt", "wb") as f:
-        for line in file_errors :
-                f.write(line.encode("utf-8").strip() + '\n')
+#with open("error_file.txt", "wb") as f:
+#        for line in file_errors :
+#                f.write(line.encode("utf-8").strip() + '\n')
+
+books.sort()
                 
-with open(u"适情雅趣.epd", "wb") as f:
-        for line in win_books :
-                f.write(line.encode("utf-8").strip() + '\n')   
-        f.write("***************************************\r\n")        
-        for line in peace_books :
+with open(u"适情雅趣.qcb", "wb") as f:
+        for line in books :
                 f.write(line.encode("utf-8").strip() + '\n')   
         
-        f.write("***************************************\r\n")        
-        for line in file_errors :
-                f.write(line.encode("utf-8").strip() + '\n')   
-               

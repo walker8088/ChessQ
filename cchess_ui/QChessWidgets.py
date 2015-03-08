@@ -75,16 +75,15 @@ class QChessBookWidget(QDockWidget):
         else :
                 self.comment_view.setText("")
          
-    def __append_move(self, move_step):   
+    def append_move(self, move_log):   
         item = QTreeWidgetItem(self.step_view)
         
-        step_no = move_step[0]
-        
-        if step_no % 2 == 1:    
+        step_no = move_log.step_no
+        if step_no % 2 == 0:    
             item.setText(0, str((step_no + 1) / 2))
         
-        item.setText(1, move_step[4])
-        #item.setData(move_step, Qt.UserRole)
+        item.setText(1, move_log.move_str_zh)
+        item.setData(0, Qt.UserRole, move_log)
         
     def append_move_step(self, step_node, index):   
         item = QTreeWidgetItem(self.step_view)
@@ -103,16 +102,14 @@ class QChessBookWidget(QDockWidget):
         self.step_view.clear()
     
     def undo_move(self):
-        #pass
+        
         count = self.step_view.topLevelItemCount()
         
-        if count == 0:
+        if count < 2:
             return 
         
-        #item = self.step_view.topLevelItem(count - 1)
-        #print item
-        
-        self.step_view.takeTopLevelItem(count -1) 
+        self.step_view.takeTopLevelItem(count - 1) 
+        self.step_view.takeTopLevelItem(count - 2) 
     
     def show_book(self, book):    
         
@@ -136,7 +133,7 @@ class QChessBookWidget(QDockWidget):
 class QChessEngineWidget(QDockWidget):
     def __init__(self, parent):
         super(QChessEngineWidget, self).__init__(u"引擎分析",  parent)
-        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea | Qt.BottomDockWidgetArea)
 
         self.step_view = QListWidget(self)
         
@@ -159,7 +156,7 @@ class QChessEngineWidget(QDockWidget):
                 move_info = msg[1]       
                 board = Chessboard()
                 board.init_board(move_info["fen_str"])
-                total_move_str = move_info['score']  
+                total_move_str = move_info["depth"] + " " + move_info['score']  
                 for (move_from, move_to) in move_info["moves"] :
                         if board.can_make_move(move_from, move_to):
                                 total_move_str += " " + board.std_move_to_chinese_move(move_from, move_to)
@@ -168,7 +165,8 @@ class QChessEngineWidget(QDockWidget):
                                 #fen_after_move = board.get_fen()
                                 #step_node = StepNode(move_str, fen_before_move,  fen_after_move, (move_from, move_to), comments)              
                         else :
-                                total_move_str  =  "error on move"
+                                print "info move error", move_from, move_to
+                                total_move_str  +=  "engine error on move"
                                 break
                 self.step_view.addItem(total_move_str)
                    
@@ -183,3 +181,71 @@ class QChessEngineWidget(QDockWidget):
     
     def minimumSizeHint(self):
         return QSize(450, 500)   
+
+class QFinalBookWidget(QDockWidget):
+    def __init__(self, parent):
+        super(QFinalBookWidget, self).__init__(u"棋谱列表",  parent)
+        self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
+        
+        self.parent = parent
+        
+        self.book_view = QTableView()
+        
+        self.book_model = QStandardItemModel(self.book_view)
+        #self.book_model.setHorizontalHeaderItem(0, QStandardItem(' '));
+        self.book_model.setHeaderData(0,QtCore.Qt.Horizontal, u"级别")  
+        self.book_model.setHeaderData(1,QtCore.Qt.Horizontal, u"名称")  
+        #self.book_model.setHorizontalHeaderItem(1, QStandardItem(u"名称"));
+        
+        self.book_view.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.book_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.book_view.verticalHeader().hide()
+        self.book_view.horizontalHeader().setResizeMode(0, QHeaderView.Fixed)
+        self.book_view.horizontalHeader().setResizeMode(1, QHeaderView.Fixed)
+        
+        self.book_view.setColumnWidth(0,30)
+        self.book_view.setColumnWidth(1,30)
+        #self.book_view.setColumnWidth(2,100)
+        
+        self.book_view.setModel(self.book_model)
+        
+        self.book_view.clicked.connect(self.onSelectIndex)
+        
+        self.setWidget(self.book_view)
+        
+    def sizeHint(self):
+        return QSize(350, 500)    
+    
+    def minimumSizeHint(self):
+        return QSize(350, 500)   
+    
+    def onSelectIndex(self, index) :
+        self.parent.do_final_book(index.row())
+         
+    def clear(self):    
+        self.book_model.clear()
+    
+    def show_book(self, book):    
+        self.clear()
+        
+        index = 0 
+        
+        for book_it in book.books :
+            #self.book_model.setItem(index, 0, QStandardItem(''));
+            self.book_model.setItem(index, 0, QStandardItem(str(book_it.level)));
+            self.book_model.setItem(index, 1, QStandardItem(book_it.name));
+            index += 1
+            
+            '''
+            view_it = QTreeWidgetItem(self.book_view)
+            if  book_it.done :
+                b = QBrush(QColor(100,180,100));
+                view_it.setBackground(0, b)
+                view_it.setBackground(1, b)
+                view_it.setBackground(2, b)
+               
+            view_it.setText(1, str(book_it.level))
+            view_it.setText(2, book_it.name)
+            view_it.setData(0, Qt.UserRole, book_it)
+            '''
+   

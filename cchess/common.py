@@ -59,18 +59,6 @@ chessman_show_names = \
 def get_show_name(kind, side) :
         return chessman_show_names[side][kind]
         
-h_level_index = \
-(
-        (u"九",u"八",u"七",u"六",u"五",u"四",u"三",u"二",u"一"), 
-        (u"１",u"２",u"３",u"４",u"５",u"６",u"７",u"８",u"９") 
-)
-
-v_change_index = \
-(
-        (u"错", ""u"一", u"二", u"三", u"四", u"五", u"六", u"七", u"八", u"九"), 
-        (u"误", ""u"１", u"２", u"３", u"４", u"５", u"６", u"７", u"８", u"９")
-)
-
 def move_to_str(p_from, p_to):
     
     x, y = p_from 
@@ -78,21 +66,39 @@ def move_to_str(p_from, p_to):
     
     move_str = ''
     move_str += chr(ord('a') + x)
-    move_str += str(9 - y)
+    move_str += str(y)
     move_str += chr(ord('a') + x_)
-    move_str += str(9 - y_)
+    move_str += str(y_)
     
     return move_str
 
 def str_to_move(move_str):
     
     m00 = ord(move_str[0]) - ord('a')
-    m01 = ord('9') - ord(move_str[1])
+    m01 = int(move_str[1])
     m10 = ord(move_str[2]) - ord('a')
-    m11 = ord('9') - ord(move_str[3])
+    m11 = int(move_str[3])
     
     return ((m00,m01),(m10, m11))
-    
+
+#-----------------------------------------------------#
+class MoveLogItem(object):
+    def __init__(self, p_from = None, p_to = None, killed_man = None, fen_before_move = '',  fen_after_move = '',  last_non_killed_fen = '',  last_non_killed_moves = []):
+        self.p_from = p_from
+        self.p_to = p_to
+        self.move_str = move_to_str(p_from, p_to)  if p_from else '' 
+        self.killed_man = killed_man
+        self.fen_before_move = fen_before_move
+        self.fen_after_move = fen_after_move
+        self.last_non_killed_fen =  last_non_killed_fen       
+        self.last_non_killed_moves = last_non_killed_moves[:]
+        
+    def fen_for_engine(self) :
+        if  self.killed_man or not self.p_from:
+            return self.fen_after_move
+        else :    
+            return self.last_non_killed_fen + " moves " + " ".join(self.last_non_killed_moves)
+            
 def mirror_moves(moves) :
         changes = {"a":"i", "b":"h", "c":"g", "d":"f", "e":"e", "f":"d", "g":"c", "h":"b", "i":"a" }
         new_moves  = ''

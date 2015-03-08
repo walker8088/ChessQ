@@ -22,6 +22,7 @@ import sys
 from common import *
 from chessman import *
 
+        
 #-----------------------------------------------------#
 
 class Chessboard(object):
@@ -33,8 +34,8 @@ class Chessboard(object):
       
         self._board = {}
         self.move_side = None
-        self.round = 0
-        self.non_kill_move_steps = 0
+        self.round = 1
+        self.non_kill_moves = 0
         
     def at_pos(self, x, y):
         
@@ -58,6 +59,7 @@ class Chessboard(object):
         return self.move_side
         
     def init_board(self, fen_str = None) :
+        
         if not fen_str:
             fen_str = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1'
                 
@@ -137,13 +139,13 @@ class Chessboard(object):
     def get_fen(self):
         fen_str = ''
         count = 0
-        for j in range(10):
-            for i in range(9):
-                if (i, j) in self._board.keys():
+        for y in range(9, -1, -1):
+            for x in range(9):
+                if (x, y) in self._board.keys():
                     if count is not 0:
                         fen_str += str(count)
                         count = 0
-                    chessman = self._board[(i, j)]
+                    chessman = self._board[(x, y)]
                     ch = get_char(chessman.kind, chessman.color)
                     
                     if ch is not '':
@@ -154,7 +156,8 @@ class Chessboard(object):
             if count > 0:
                 fen_str += str(count)
                 count = 0
-            if j < 9:
+                
+            if y > 0:
                 fen_str += '/'
                 
         if self.move_side is BLACK:
@@ -167,24 +170,26 @@ class Chessboard(object):
         return fen_str
 
     def fen_parse(self, fen_str):
-        
+       
         self.clear()
-            
+        
+        fen_str = fen_str.strip()
+        
         if fen_str == '':
                 return
 
-        x = y = 0
+        x = 0
+        y = 9
 
         for i in range(0, len(fen_str)):
             ch = fen_str[i]
+            
             if ch == ' ':
                 break
-
-            if ch == '/':
+            elif ch == '/':
+                y -= 1
                 x = 0
-                y += 1
-
-                if y > 9:
+                if y < 0:
                     break
             elif ch >= '1' and ch <= '9':
                 x += int(ch)
@@ -193,18 +198,15 @@ class Chessboard(object):
             elif ch >= 'A' and ch <= 'Z':
                 if x <= 8:
                     kind = get_kind(ch)
-
                     if kind != NONE:
-                        self.create_chessman(kind, RED, (x, y))
-                        
+                        self.create_chessman(kind, RED, (x, y))                
                     x += 1
             elif ch >= 'a' and ch <= 'z':
                 if x <= 8:
                     kind = get_kind(ch)
 
                     if kind != NONE:
-                        self.create_chessman(kind, BLACK, (x, y))
-                        
+                        self.create_chessman(kind, BLACK, (x, y))    
                     x += 1
         
         fens = fen_str.split() 
@@ -242,16 +244,28 @@ class Chessboard(object):
         return True
         
     def make_step_move(self, p_from, p_to, color_limit = True):
-        
+    
         if not self.can_make_move(p_from, p_to, color_limit):
             return False
-            
-        killed_man = self._do_move(p_from, p_to)
         
-        self.non_kill_move_steps = 0 if killed_man else (self.non_kill_move_steps + 1) 
-               
+        killed_man = self._do_move(p_from, p_to)
+        self.non_kill_moves = 0 if killed_man else (self.non_kill_moves + 1) 
+        
         return True
                 
+    def make_log_step_move(self, p_from, p_to, color_limit = True):
+    
+        if not self.can_make_move(p_from, p_to, color_limit):
+            return None
+        
+        fen_before_move = self.get_fen()    
+        killed_man = self._do_move(p_from, p_to)
+        #fen_after_move = self.get_fen()
+        self.non_kill_moves = 0 if killed_man else (self.non_kill_moves + 1) 
+        
+        move_log = MoveLogItem(p_from, p_to, killed_man,  fen_before_move,  None,  self.non_kill_moves)
+        
+        return move_log
     
     def _do_move(self, p_from, p_to):
 
@@ -266,14 +280,14 @@ class Chessboard(object):
         
         return killed_man
         
-    def __undo_move(self, p_from, p_to, chessman_):
+    def __undo_move(self, p_from, p_to, killed_man = None):
         chessman = self._board[p_to]
         
         chessman.x, chessman.y = p_from
         self._board[p_from] = chessman
 
-        if chessman_ is not None:
-            self._board[p_to] = chessman_
+        if killed_man is not None:
+            self._board[p_to] = killed_man
         else:
             del self._board[p_to]
     

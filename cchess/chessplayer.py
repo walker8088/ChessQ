@@ -34,7 +34,7 @@ class ChessPlayer(object):
     def get_next_move(self) :
         pass
                 
-
+'''
 #-----------------------------------------------------#
 
 class EngineChessPlayer(ChessPlayer) :
@@ -55,7 +55,7 @@ class EngineChessPlayer(ChessPlayer) :
             
     def stop_game(self) :
         self.engine.stop_game()
-    
+'''    
 #-----------------------------------------------------#
 
 class UiChessPlayer(ChessPlayer) :
@@ -66,8 +66,6 @@ class UiChessPlayer(ChessPlayer) :
     
     def bind_engine(self,  engine):
         self.engine = engine
-        if self.engine and (self.side != None) and (self.side == self.board.move_side):
-            self.ready_to_move()
             
     def start_game(self) :
         self.board.set_hook_move(self.side, self.on_move_chessman)
@@ -76,10 +74,8 @@ class UiChessPlayer(ChessPlayer) :
         self.board.set_hook_move(self.side, None)
             
     def ready_to_move(self) :
-        if self.engine:
-            fen_str = self.board.get_fen()
-            self.engine.go_from(fen_str)
-    
+        pass
+        
     def on_move_chessman(self, p_from, p_to) :
         if self.board.can_make_move(p_from, p_to) :
             self.move_queue.put((MOVE, (p_from, p_to)))

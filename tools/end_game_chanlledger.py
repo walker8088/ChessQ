@@ -24,13 +24,15 @@ sys.path.append("..\\")
 from cchess import *
 
 #-----------------------------------------------------#
-def load_from_epd(epd_file):
-        with open(epd_file) as f:
+def load_from_qcb(qcb_file):
+        with open(qcb_file) as f:
             lines = f.readlines()
         
         books = []
         
         for line in lines:
+            if line.startswith("**") :
+                continue
             items = line.strip()
             books.append(items)
         
@@ -52,11 +54,13 @@ def  chanlledge_end_game(book_fen, engine) :
         while running : 
    
                 if len(last_moves) == 0:
-                        move_history = None
+                    move_history = None
+                    engine_fen =  last_fen 
                 else :
-                        move_history = ' '.join(last_moves)
-                        
-                engine.go_from(last_fen, move_history)
+                    move_history = ' '.join(last_moves)
+                    engine_fen =  last_fen + " moves " + move_history 
+                
+                engine.go_from(engine_fen, last_fen)
                 
                 waiting = True
                 while waiting : 
@@ -121,7 +125,7 @@ def  chanlledge_end_game(book_fen, engine) :
 #-----------------------------------------------------#
 if __name__ == '__main__':
     
-    books = load_from_epd(u"..\\chessbooks\\适情雅趣.epd")
+    books = load_from_qcb(u"end_games.qcb")
     
     engine = UcciEngine()
     engine.load("..\\engines\\eleeye\\eleeye")
@@ -129,12 +133,12 @@ if __name__ == '__main__':
     
     ok_games = []
     bad_games = []
-    for book in books :
+    for book in books[:]  :
         items = book.split()
-        book_fen = " ".join(items[1:])
+        book_fen = " ".join(items[0:2])
         moves = chanlledge_end_game(book_fen, engine)
         if moves :
-                end_game_str = "%02d  %s moves %s" % ( (len(moves)+1)/2, book, ' '.join(moves))
+                end_game_str = "%02d  %s %s moves %s" % ( (len(moves)+1)/2, items[0], items[1], ' '.join(moves))
                 ok_games.append(end_game_str)
                 print  end_game_str      
         else :
@@ -143,9 +147,9 @@ if __name__ == '__main__':
     engine.quit()
     
     ok_games.sort() 
-    print ok_games
+    #print ok_games
     
-    with open(u"..\\chessbooks\\适情雅趣_good.epd", "wb") as f:
+    with open(u"end_games_good.qcb", "wb") as f:
         for line in bad_games :
                 f.write(line + "\n")
     

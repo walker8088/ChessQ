@@ -20,6 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import time
 
+from pubsub import pub
+
 from common import *
 from engine import *
 
@@ -41,14 +43,18 @@ class ChessTable(object):
         self.players[BLACK].side = BLACK
         
     def new_game(self, fen_str = None) :
-                
+    
         self.board.init_board(fen_str)
-                
-        self.history = []
-                
-    def start_game(self):
         
         self.history = []
+        self.last_non_killed_fen = self.board.get_fen()         
+        self.last_non_killed_moves = []
+        
+        move_log = MoveLogItem(fen_after_move =  self.board.get_fen(), last_non_killed_fen = self.last_non_killed_fen,  last_non_killed_moves = self.last_non_killed_moves)
+        self.history.append(move_log)
+        
+    def start_game(self):
+        
         self.running = True     
         
         self.players[RED].start_game()
@@ -64,28 +70,26 @@ class ChessTable(object):
     
     def undo_move(self):
         
-        if len(self.history) == 0:
-            return
-        
         #需要返回前两步才对   
-        last_move = self.history.pop()
-        last_move = self.history.pop()
+        if len(self.history) > 1:
+            self.history.pop()
         
-        self.board.init_board(last_move[1])
+        if len(self.history) > 1:
+            self.history.pop()
             
+        print len(self.history)
+        
+        move_log = self.history[-1]
+        
+        self.board.init_board(move_log.fen_after_move)
+        
+        self.last_non_killed_fen = move_log.last_non_killed_fen         
+        self.last_non_killed_moves = move_log.last_non_killed_moves[:]
+        
+        print  "undo to", self.last_non_killed_fen, self.last_non_killed_moves
+        
         self.players[self.board.move_side].ready_to_move()    
-    
-    '''
-    def move_done(self, side):
-        
-        if side != self.board.move_side:
-            print "error on move done side"
-            return False
-        
-        self.board.turn_side()
-        self.players[self.board.move_side].ready_to_move()
-    '''        
-            
+                
     def handle_player_msg(self) :
         
         if not self.running:    
@@ -100,27 +104,39 @@ class ChessTable(object):
         
         if result == MOVE :
             p_from, p_to = move_event
+            #print "chesstable got next move",  p_from, p_to
             
             if not self.board.can_make_move(p_from, p_to) :
-                print "move check error", p_from, p_to
+                print "chesstable move check error", p_from, p_to
                 return
             
             fen_str = self.board.get_fen() 
-            
-            chinese_move_str = self.board.std_move_to_chinese_move(p_from, p_to) 
-            
-            self.board.make_step_move(p_from, p_to) 
-            
-            step_no = len(self.history) + 1
-            self.history.append((step_no, fen_str, p_from, p_to, chinese_move_str))
-            
-            self.parent.notify_move_from_table(self.history[-1])
+            move_str_zh = self.board.std_move_to_chinese_move(p_from, p_to) 
+            move_log = self.board.make_log_step_move(p_from, p_to) 
             
             self.board.turn_side()
+            
+            move_log.fen_after_move =  self.board.get_fen()
+            move_log.move_str_zh = move_str_zh
+            
+            if  move_log.killed_man :
+                self.last_non_killed_fen = self.board.get_fen()         
+                self.last_non_killed_moves = []
+            else :
+                self.last_non_killed_moves.append(move_log.move_str)
+                
+            move_log.last_non_killed_fen = self.last_non_killed_fen
+            move_log.last_non_killed_moves = self.last_non_killed_moves[:]
+            move_log.step_no = len(self.history) + 1
+            #print  "move_log", self.last_non_killed_fen,self.last_non_killed_moves
+            self.history.append(move_log)
+            
+            #self.parent.notify_move_from_table(move_log)
+            pub.sendMessage('step_move', move_log = move_log)
+            
             self.players[self.board.move_side].ready_to_move()
         
         elif result == DEAD:
-            
             self.over = True
             self.over_side = self.board.move_side
             

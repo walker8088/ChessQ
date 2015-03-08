@@ -23,16 +23,31 @@ from common import *
 
 #-----------------------------------------------------#
 
-advisor_pos = (((3, 9), (5, 9), (4, 8), (3, 7), (5, 7)), 
-               ((3, 0), (5, 0), (4, 1), (3, 2), (5, 2)))
+h_level_index = \
+(
+        (u"九",u"八",u"七",u"六",u"五",u"四",u"三",u"二",u"一"), 
+        (u"１",u"２",u"３",u"４",u"５",u"６",u"７",u"８",u"９") 
+)
 
-bishop_pos = (((2, 9), (6, 9), (0, 7), (4, 7), (9, 7), (2, 5), (6, 5)), 
-              ((2, 0), (6, 0), (0, 2), (4, 2), (9, 2), (2, 4), (6, 4)))
+v_change_index = \
+(
+        (u"错", ""u"一", u"二", u"三", u"四", u"五", u"六", u"七", u"八", u"九"), 
+        (u"误", ""u"１", u"２", u"３", u"４", u"５", u"６", u"７", u"８", u"９")
+)
 
-        
 #-----------------------------------------------------#
 
+advisor_pos = (
+    ((3, 0), (5, 0), (4, 1), (3, 2), (5, 2)),
+    ((3, 9), (5, 9), (4, 8), (3, 7), (5, 7)), 
+    )
 
+bishop_pos = (
+    ((2, 0), (6, 0), (0, 2), (4, 2), (9, 2), (2, 4), (6, 4)),
+    ((2, 9), (6, 9), (0, 7), (4, 7), (9, 7), (2, 5), (6, 5)), 
+    )
+
+        
 #-----------------------------------------------------#
 
 class Chessman(object):
@@ -49,28 +64,44 @@ class Chessman(object):
         self.name = get_show_name(kind, color)
         
         self.__can_place_checks = {
-            KING : self.__can_place_king, 
+            KING        : self.__can_place_king, 
             ADVISOR : self.__can_place_advisor, 
-            BISHOP : self.__can_place_bishop, 
-            PAWN : self.__can_place_pawn
+            BISHOP    : self.__can_place_bishop, 
+            PAWN      : self.__can_place_pawn
         }
         
         self.__can_move_checks = {
-            KING : self.__can_move_king, 
-            ADVISOR : self.__can_move_advisor, 
-            BISHOP : self.__can_move_bishop, 
-            KNIGHT : self.__can_move_knight, 
-            ROOK : self.__can_move_rook, 
-            CANNON : self.__can_move_cannon,
-            PAWN : self.__can_move_pawn
+            KING         :  self.__can_move_king, 
+            ADVISOR  :  self.__can_move_advisor, 
+            BISHOP     :  self.__can_move_bishop, 
+            KNIGHT    :  self.__can_move_knight, 
+            ROOK       :  self.__can_move_rook, 
+            CANNON :  self.__can_move_cannon,
+            PAWN      :  self.__can_move_pawn
         }
         
         self.__chinese_move_to_std_move_checks = {
             ADVISOR : self.__chinese_move_to_std_move_advisor, 
-            BISHOP : self.__chinese_move_to_std_move_bishop, 
-            KNIGHT : self.__chinese_move_to_std_move_knight, 
+            BISHOP    : self.__chinese_move_to_std_move_bishop, 
+            KNIGHT   : self.__chinese_move_to_std_move_knight, 
         }
     
+    def can_place_to(self, x, y):
+        if not self.__can_place_check_default(x, y):
+            return False
+            
+        if self.kind in self.__can_place_checks:
+            return self.__can_place_checks[self.kind](x, y)
+        
+        return True
+        
+    def can_move_to(self, x, y):
+        if not self.__can_move_check_default(x, y):
+            print "not self.__can_move_check_default",  x,  y
+            return False
+        
+        return self.__can_move_checks[self.kind](x, y) 
+        
     def std_move_to_chinese_move(self, p_to, index_str = None):
         
         if self.kind in [KING, ROOK, CANNON, PAWN]:
@@ -83,10 +114,10 @@ class Chessman(object):
                 if self.color == BLACK:
                     diff = -diff
                 
-                if diff < 0 : 
-                    diff_str = u"进" + v_change_index[self.color][-diff]
+                if diff > 0 : 
+                    diff_str = u"进" + v_change_index[self.color][diff]
                 else :
-                    diff_str = u"退" + v_change_index[self.color][diff]
+                    diff_str = u"退" + v_change_index[self.color][-diff]
             
             if not index_str :
                 move_str = self.name + h_level_index[self.color][self.x] + diff_str 
@@ -99,7 +130,7 @@ class Chessman(object):
             if self.color == BLACK:
                 diff = -diff
             
-            if diff < 0 : 
+            if diff > 0 : 
                 diff_str = u"进"
             else :
                 diff_str = u"退"
@@ -126,22 +157,6 @@ class Chessman(object):
             
         return ((self.x,  self.y), new_pos)
     
-    def can_place_to(self, x, y):
-        if not self.__can_place_check_default(x, y):
-            return False
-            
-        if self.kind in self.__can_place_checks:
-            return self.__can_place_checks[self.kind](x, y)
-        
-        return True
-        
-    def can_move_to(self, x, y):
-        if not self.__can_move_check_default(x, y):
-            print "not self.__can_move_check_default",  x,  y
-            return False
-        
-        return self.__can_move_checks[self.kind](x, y) 
-        
     def __can_place_check_default(self, x, y):
         
         if x < 0 or x > 8 or y < 0 or y > 9:
@@ -158,10 +173,10 @@ class Chessman(object):
         if x < 3 or x > 5:
             return False
             
-        if (self.color == RED) and y < 7:
+        if (self.color == RED) and y > 2:
             return False
             
-        if (self.color == BLACK) and y > 2:
+        if (self.color == BLACK) and y < 7:
             return False
             
         return True
@@ -181,13 +196,14 @@ class Chessman(object):
             return True
             
         return False
+        
     #兵    
     def __can_place_pawn(self, x, y):
         
-        if (self.color == RED) and y > 6:
+        if (self.color == RED) and y < 3:
             return False
             
-        if (self.color == BLACK) and y < 3:
+        if (self.color == BLACK) and y > 6:
             return False
             
         return True
@@ -309,19 +325,18 @@ class Chessman(object):
         return False
         
     def __pawn_over_river(self) :      
-        if (self.color == RED) and (self.y < 5) :
+        if (self.color == RED) and (self.y > 4) :
             return True
             
-        if (self.color == BLACK) and (self.y > 4 ) :
+        if (self.color == BLACK) and (self.y < 5) :
             return True
             
         return False
     
     def __can_move_pawn(self, x, y):
         
-        not_over_river_step = ((0, -1), (0, 1))
-        over_river_step = (((-1, 0), (1, 0), (0, -1)), 
-                           ((-1, 0), (1, 0), (0, 1)))
+        not_over_river_step = ((0, 1), (0, -1))
+        over_river_step = (((-1, 0), (1, 0), (0, 1)),((-1, 0), (1, 0), (0, -1)))
                            
         step = (x - self.x, y - self.y)
         
@@ -342,9 +357,9 @@ class Chessman(object):
         new_x = h_level_index[self.side].index(move_str[1])
                 
         if move_str[0] == u"进" :
-            diff_y = 1
+            diff_y = -1
         elif move_str[0] == u"退" :
-            diff_y = -1    
+            diff_y = 1    
         else :
             return None
         
@@ -362,9 +377,9 @@ class Chessman(object):
         new_x = h_level_index[self.side].index(move_str[1])
                 
         if move_str[0] == u"进" :
-            diff_y = 2
+            diff_y = -2
         elif move_str[0] == u"退" :
-            diff_y = -2    
+            diff_y = 2    
         else :
             return None
         
@@ -392,7 +407,7 @@ class Chessman(object):
         else :
             return None
         
-        if self.color == BLACK:
+        if self.color == RED:
             diff_y = -diff_y
         
         new_y = self.y - diff_y
@@ -410,9 +425,9 @@ class Chessman(object):
             #王，车，炮，兵的前进和后退
             diff = v_change_index[self.side].index(move_str[1])
             
-            if move_str[0] == u"进":
+            if move_str[0] == u"退":
                 diff = -diff
-            elif move_str[0] != u"退":
+            elif move_str[0] != u"进":
                 return None
                 
             if self.color == BLACK:
