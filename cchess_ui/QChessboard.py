@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, time
 
+from pubsub import pub
+
 from PyQt4 import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui  import *
@@ -43,7 +45,6 @@ class QChessboard(Chessboard, QWidget):
         
         self.flip_board = False
         
-        self.hook_move = [None,  None]
         #self.last_move = None
         self.move_side = None
         self.last_selected = None
@@ -108,7 +109,7 @@ class QChessboard(Chessboard, QWidget):
         board_x = BORDER + x * SPACE + self.start_x
         board_y = BORDER + (9 - y) * SPACE + self.start_y
         
-        return board_x,  board_y     
+        return (board_x,  board_y)     
     
     def board_to_logic(self, bx,  by):
         
@@ -119,7 +120,7 @@ class QChessboard(Chessboard, QWidget):
             x = 8 - x
             y = 9 - y 
         
-        return x,  y
+        return (x,  y)
         
     def setFlipBoard(self, fliped): 
         
@@ -222,14 +223,16 @@ class QChessboard(Chessboard, QWidget):
                     return
                 
                 #可能是吃子，交由player自己管理
-                if  self.hook_move[self.move_side] :
-                    self.hook_move[self.move_side](self.last_selected, (x,y))
+                #if  self.hook_move[self.move_side] :
+                #    self.hook_move[self.move_side](self.last_selected, (x,y))
+                pub.sendMessage("side_move_request", from_pos = self.last_selected, to_pos = (x,y))
                     
         else :
             #空击,如果已经有选过，则可能是走子
-            if self.last_selected and  self.hook_move[self.move_side] :
-                self.hook_move[self.move_side](self.last_selected, (x,y))
-                        
+            if self.last_selected : #and  self.hook_move[self.move_side] :
+                #self.hook_move[self.move_side](self.last_selected, (x,y))
+                pub.sendMessage("side_move_request",  from_pos = self.last_selected, to_pos = (x,y))
+                
         self.update()
                 
     def mouseMoveEvent(self, mouseEvent):
@@ -260,6 +263,6 @@ class QChessboard(Chessboard, QWidget):
         
         return steps 
         
-    def set_hook_move(self, side, move_func):
-        self.hook_move[side] = move_func
+    #def set_hook_move(self, side, move_func):
+    #    self.hook_move[side] = move_func
     

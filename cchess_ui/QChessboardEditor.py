@@ -65,13 +65,10 @@ class QChessboardEditWidget(Chessboard, QWidget):
         
         x, y = self.board_to_logic(pos.x(),  pos.y())   
         
-        print x, y
-        
         if (x, y) in self._board.keys():
             self.last_selected = (x, y)
         else :
             self._new_pos = (x, y)
-        
         
         fen_str = self.get_fen()
         
@@ -246,16 +243,16 @@ class QChessboardEditWidget(Chessboard, QWidget):
     def logic_to_board(self,  x,  y):
         
         board_x = BORDER + x * SPACE
-        board_y = BORDER + y * SPACE
+        board_y = BORDER + (9 - y) * SPACE
         
         return board_x,  board_y     
     
     def board_to_logic(self, bx,  by):
         
         x = (bx - BORDER) / SPACE
-        y = (by - BORDER) / SPACE
+        y = 9 - ((by - BORDER) / SPACE)
         
-        return x,  y
+        return (x,  y)
         
     def paintEvent(self, ev):
         painter = QPainter(self)

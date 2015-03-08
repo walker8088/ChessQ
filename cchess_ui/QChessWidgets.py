@@ -19,6 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from cchess import *
 
+from pubsub import pub
+
 from PyQt4 import *
 from PyQt4.QtCore import *
 from PyQt4.QtGui  import *
@@ -35,12 +37,12 @@ class QChessBookWidget(QDockWidget):
         self.step_view = QTreeWidget()
         self.step_view.setColumnCount(1)
         self.step_view.setHeaderLabels([u"序号", u"行棋", u"注释",  u"变招"])
-        self.step_view.setColumnWidth(0,30)
+        self.step_view.setColumnWidth(0,60)
         self.step_view.setColumnWidth(1,80)
         self.step_view.setColumnWidth(2,30)
         self.step_view.setColumnWidth(3,120)
         
-        self.step_view.itemClicked.connect(self.onSelectStep)
+        self.step_view.itemSelectionChanged.connect(self.onSelectStep)
         
         self.comment_view = QTextEdit()
         self.comment_view.readOnly = True
@@ -61,26 +63,25 @@ class QChessBookWidget(QDockWidget):
     def minimumSizeHint(self):
         return QSize(350, 500)   
     
-    def onSelectStep(self, item, column):
+    def onSelectStep(self):
         
-        step_node = item.data(0, Qt.UserRole)
+        items = self.step_view.selectedItems()
         
-        if isinstance(step_node,StepNode):
-                self.parent.board.init_board(step_node.fen_str_after_step)
-        else :
-                self.parent.board.init_board(step_node.fen_str)
+        if len(items) != 1:
+            return 
+            
+        item = items[0]    
+        move_log = item.data(0, Qt.UserRole)
         
-        if step_node.comment != None:
-                self.comment_view.setText(step_node.comment)
-        else :
-                self.comment_view.setText("")
-         
+        pub.sendMessage("game_reshow",  move_log = move_log)
+                
     def append_move(self, move_log):   
         item = QTreeWidgetItem(self.step_view)
         
         step_no = move_log.step_no
-        if step_no % 2 == 0:    
-            item.setText(0, str((step_no + 1) / 2))
+        if step_no % 2 == 1:    
+            hint =  "{0}.".format((step_no + 1) / 2) 
+            item.setText(0, hint)
         
         item.setText(1, move_log.move_str_zh)
         item.setData(0, Qt.UserRole, move_log)
@@ -101,16 +102,17 @@ class QChessBookWidget(QDockWidget):
     def clear(self):    
         self.step_view.clear()
     
-    def undo_move(self):
-        
-        count = self.step_view.topLevelItemCount()
-        
-        if count < 2:
-            return 
-        
-        self.step_view.takeTopLevelItem(count - 1) 
-        self.step_view.takeTopLevelItem(count - 2) 
-    
+    def undo_move(self, steps):
+        while steps > 1:        
+            count = self.step_view.topLevelItemCount()
+            
+            if count < 1:
+                return 
+            
+            self.step_view.takeTopLevelItem(count - 1) 
+            
+            steps -= 1
+            
     def show_book(self, book):    
         
         self.clear()
@@ -139,37 +141,41 @@ class QChessEngineWidget(QDockWidget):
         
         self.setWidget(self.step_view)
     
-    def  handle_engine_msg(self, engine) :
+    def show_profile(self, yes) :
+        if yes :
+            pub.subscribe(self.on_game_started, "game_started")
+            pub.subscribe(self.on_game_step_moved, "game_step_moved")
+            pub.subscribe(self.on_engine_move_info, "engine_move_info")
+        else :
+            self.step_view.clear()
+            pub.unsubscribe(self.on_game_started, "game_started")
+            pub.unsubscribe(self.on_game_step_moved, "game_step_moved")
+            pub.unsubscribe(self.on_engine_move_info, "engine_move_info")
+            
+    def on_game_started(self, move_side) :
+        self.step_view.clear()
+    
+    def on_game_step_moved(self, move_log) :
+        self.step_view.clear()
+            
+    def  on_engine_move_info(self, move_info) :
         
-        if engine.move_info_queue.qsize() == 0:
-                return 
-                
-        msg = engine.move_info_queue.get_nowait()
-        
-        if msg  == None :
-                return       
-        
-        if msg[0] == BOARD_RESET :
-                self.step_view.clear()
-                
-        elif msg[0] == INFO_MOVE :
-                move_info = msg[1]       
-                board = Chessboard()
-                board.init_board(move_info["fen_str"])
-                total_move_str = move_info["depth"] + " " + move_info['score']  
-                for (move_from, move_to) in move_info["moves"] :
-                        if board.can_make_move(move_from, move_to):
-                                total_move_str += " " + board.std_move_to_chinese_move(move_from, move_to)
-                                board.make_step_move(move_from, move_to)
-                                board.turn_side()
-                                #fen_after_move = board.get_fen()
-                                #step_node = StepNode(move_str, fen_before_move,  fen_after_move, (move_from, move_to), comments)              
-                        else :
-                                print "info move error", move_from, move_to
-                                total_move_str  +=  "engine error on move"
-                                break
-                self.step_view.addItem(total_move_str)
-                   
+        board = Chessboard()
+        board.init_board(move_info["fen_str"])
+        total_move_str = move_info["depth"] + " " + move_info['score']  
+        for (move_from, move_to) in move_info["moves"] :
+                if board.can_make_move(move_from, move_to):
+                        total_move_str += " " + board.std_move_to_chinese_move(move_from, move_to)
+                        board.make_step_move(move_from, move_to)
+                        board.turn_side()
+                        #fen_after_move = board.get_fen()
+                        #step_node = StepNode(move_str, fen_before_move,  fen_after_move, (move_from, move_to), comments)              
+                else :
+                        print "info move error", move_from, move_to
+                        total_move_str  +=  "engine error on move"
+                        break
+        self.step_view.addItem(total_move_str)
+           
     def append_info(self, info):   
         self.step_view.addItem(info)
           
@@ -220,7 +226,7 @@ class QFinalBookWidget(QDockWidget):
         return QSize(350, 500)   
     
     def onSelectIndex(self, index) :
-        self.parent.do_final_book(index.row())
+        self.parent.start_final_book(index.row())
          
     def clear(self):    
         self.book_model.clear()

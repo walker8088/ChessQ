@@ -23,6 +23,8 @@ from subprocess import PIPE, Popen
 from threading import Thread
 from Queue import Queue, Empty
 
+from pubsub import pub
+
 from common import *
 
 #-----------------------------------------------------#
@@ -51,26 +53,118 @@ class UcciEngine(Thread):
         self.move_queue = Queue()
         self.move_info_queue = Queue()
         
-        self.search_depth = 8
+        pub.subscribe(self.on_game_inited, "game_inited")
+        pub.subscribe(self.on_game_started, "game_started")
+        pub.subscribe(self.on_game_step_moved, "game_reshow")
+        pub.subscribe(self.on_game_step_moved, "game_step_moved")
+        pub.subscribe(self.on_game_step_moved_undo, "game_step_moved_undo")
         
+        self.search_depth = 8
+    
+    def on_game_inited(self, move_log) :
+        self.init_fen = move_log.fen_after_move
+        self.last_fen_str = move_log.fen_after_move
+        self.send_cmd("setoption newgame")
+        
+    def on_game_started(self, move_side) :
+        self.move_side = move_side
+        self.go_from(self.init_fen)
+       
+    def on_game_step_moved(self, move_log) :
+        self.move_side = move_log.next_move_side()
+        self.last_fen_str = move_log.fen_after_move
+        self.go_from(move_log.fen_for_engine())
+    
+    def on_game_step_moved_undo(self, steps, move_log, next_move_side) :
+        self.move_side = next_move_side
+        self.last_fen_str = move_log.fen_after_move
+        self.go_from(move_log.fen_for_engine())
+
     def run(self) :
         
         self.running = True
         
         while self.running :
             output = self.pout.readline().strip()
+            self.engine_out_queque.put(output)
             
-            if output in ['bye','']: #stop pipe
-                self.running = False
-                self.pipe.terminate()
-                break
+    def handle_msg_once(self) :
+        try:  
+            output = self.engine_out_queque.get_nowait()
+        except Empty:
+            return 
+    
+        if output in ['bye','']: #stop pipe
+            self.pipe.terminate()
+            return False
+            
+        self.__handle_engine_out_line(output)
+        
+        return True
+    
+    def load(self, engine_path):
+    
+        self.engine_name = engine_path
+        
+        try:
+            self.pipe = Popen(self.engine_name, stdin=PIPE, stdout=PIPE)#, close_fds=ON_POSIX)
+        except OSError:
+            return False
+            
+        time.sleep(0.5)
+        
+        (self.pin, self.pout) = (self.pipe.stdin,self.pipe.stdout)
+        
+        self.engine_out_queque = Queue()
+        
+        self.enging_status = BOOTING
+        self.send_cmd("ucci")
+        
+        self.start()
+        
+        while self.enging_status ==  BOOTING :
+            self.handle_msg_once()
+            
+        return True
+        
+    def quit(self):
+        
+        self.send_cmd("quit")
+        
+        time.sleep(0.2)
+            
+    def go_from(self, fen_for_engine):
+        
+        while True:
+            try:  
+                output = self.engine_out_queque.get_nowait()
+            except Empty:
+                break 
                 
-            self.__handle_engine_out_line(output)
+        cmds = 'position fen ' + fen_for_engine
+       
+        self.send_cmd(cmds)
+        
+        #if ban_move :
+        #        self.send_cmd('banmoves ' + ban_move)
+        
+        self.send_cmd('go depth ' + str(self.search_depth))
+        
+    def send_cmd(self, cmd_str) :
+        
+        #print ">>>", cmd_str
+        
+        try :
+            self.pin.write(cmd_str + "\n")
+            self.pin.flush()
+    
+        except IOError as e :
+            print "error in send cmd", e
                 
     def __handle_engine_out_line(self, output) :
                 
         #print "<<<", output
-    
+        
         outputs_list = output.split()
         resp_id = outputs_list[0]
         
@@ -83,19 +177,19 @@ class UcciEngine(Thread):
                     self.enging_status = READY
     
         elif self.enging_status == READY:
-            #print "<<<", output
-        
+            
             if resp_id == 'nobestmove':         
-                self.move_queue.put((DEAD, None))
+                pub.sendMessage("side_dead", dead_side = self.move_side)
                 
             elif resp_id == 'bestmove':
                 if outputs_list[1].lower() == 'null':
-                    self.move_queue.put((DEAD, None))
+                    pub.sendMessage("side_dead", dead_side = self.move_side)
+                    
                 else :  
                     move_str = output[9:13]
-                    move_arr = str_to_move(move_str)
-                    self.move_queue.put((MOVE, move_arr))
-        
+                    poss = str_to_move(move_str)
+                    pub.sendMessage("engine_best_move",  from_engine = self, from_pos = poss[0] , to_pos = poss[1])
+                    
             elif resp_id == 'info':
                 #info depth 6 score 4 pv b0c2 b9c7 c3c4 h9i7 c2d4 h7e7
                 if outputs_list[1] == "depth":
@@ -115,74 +209,8 @@ class UcciEngine(Thread):
                         move_steps.append(move)    
                     move_info["moves"] = move_steps    
                     
-                    self.move_info_queue.put_nowait((INFO_MOVE, move_info))
-                    
-    def load(self, engine_path):
-    
-        self.engine_name = engine_path
-        try:
-            self.pipe = Popen(self.engine_name, stdin=PIPE, stdout=PIPE)#, close_fds=ON_POSIX)
-        except OSError:
-            return False
-            
-        time.sleep(0.5)
-        
-        (self.pin, self.pout) = (self.pipe.stdin,self.pipe.stdout)
-        
-        self.enging_status = BOOTING
-        self.send_cmd("ucci")
-        
-        self.start()
-        
-        return True
-        
-    def quit(self):
-        
-        self.send_cmd("quit")
-        
-        time.sleep(0.2)
-            
-    def go_from(self, fen_for_engine, fen_str):
-        
-        cmds = 'position fen ' + fen_for_engine
-       
-        self.send_cmd(cmds)
-        
-        #if ban_move :
-        #        self.send_cmd('banmoves ' + ban_move)
-        
-        self.last_fen_str = fen_str
-        self.move_queue = Queue()
-        self.move_info_queue.put_nowait((BOARD_RESET, self.last_fen_str[:]))
-        
-        self.send_cmd('go depth ' + str(self.search_depth))
-        
-    def send_cmd(self, cmd_str) :
-        
-        #print ">>>", cmd_str
-        
-        try :
-            self.pin.write(cmd_str + "\n")
-            self.pin.flush()
-    
-        except IOError as e :
-            print "error in send cmd", e
-                
-    def start_game(self) :
-        self.move_queue = Queue()
-        self.move_info_queue = Queue()
-        self.send_cmd("setoption newgame")
-                
-    def stop_game(self):
-       self.send_cmd("stop")
-       
-    def get_next_move(self) :
-        try:
-            move = self.move_queue.get_nowait()
-        except Empty:
-            return None
-        return move
-                    
+                    pub.sendMessage("engine_move_info",  move_info  =move_info)
+                                        
 #-----------------------------------------------------#
 
 if __name__ == '__main__':

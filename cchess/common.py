@@ -4,6 +4,7 @@ RED, BLACK = 0, 1
 
 KING, ADVISOR, BISHOP, KNIGHT, ROOK, CANNON, PAWN, NONE = range(8)
 
+DEFAULT_INIT_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR w - - 0 1'
 
 def get_kind(fen_ch):
     if fen_ch in ['k', 'K']:
@@ -98,7 +99,13 @@ class MoveLogItem(object):
             return self.fen_after_move
         else :    
             return self.last_non_killed_fen + " moves " + " ".join(self.last_non_killed_moves)
-            
+    
+    def next_move_side(self) :
+        
+        move_id = self.fen_after_move.split()[1]
+        
+        return BLACK if (move_id.lower() == 'b') else RED
+        
 def mirror_moves(moves) :
         changes = {"a":"i", "b":"h", "c":"g", "d":"f", "e":"e", "f":"d", "g":"c", "h":"b", "i":"a" }
         new_moves  = ''
