@@ -1,7 +1,5 @@
 
-from cchess  import *
-from cchess_ui  import *
+from chessq import *
 
-if __name__ == '__main__':
-    app = QChessApplication()
-    sys.exit(app.exec_())
+app = QChessApp()
+sys.exit(app.exec_())
