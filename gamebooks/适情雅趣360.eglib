@@ -20,7 +20,7 @@
 241一虎下山|9/3Pak1P1/5a3/9/4N4/9/9/4B4/1p2rp3/2BK5 w|h8g8,f8f9,d8d9,e8d9,e5d7
 243残虏投降|5ab2/1P1k5/3a4b/9/6p2/9/6P2/9/4K4/5C3 w|b8c8,d8d9,c8c9,d9d8,f0f8
 246退无所归|6b2/9/3k5/4P1N2/2b6/9/9/9/2p2p3/4K4 w|g6f8,d7d8,e6d6,c1d1,d6d7
-261雌鸡化雄|2bak1r2/3Pa4/4bC3/N6R1/p8/3R2B2/4P1n2/2C6/2r3p2/c1BAK4 w|a6c7,c1c2,d8d9,e9f9,h6h8
+261雌鸡化雄|2bak1r2/3Pa4/4bc3/N6R1/p8/3R2B2/4P1n2/2C6/2r3p2/c1BAK4 w|a6c7,c1c2,d8d9,e9f9,h6h8
 264大车无轨|3a5/2N4N1/1r1k5/2P6/9/9/3r4P/4BA3/3pA4/2B1K4 w|h8f9,d9e8,c8e7,e8f9,e7f9
 269威震华夷|4ka3/4a4/9/9/4R4/9/pp5pp/9/9/4K4 w|e5b5,e9d9,b5d5,d9e9,d5d3
 005吐胆倾心|3a1k3/3P5/2r2a3/6N1n/9/6R2/9/4C4/4r4/5K3 w|g6e7,c7e7,g4g9,f9f8,d8e8,d9e8,e2f2
@@ -143,7 +143,7 @@
 266筑坛拜帅|3ak4/4a4/2R6/9/9/9/9/2C3p2/3r5/4K1c2 w|c7h7,e9f9,c2c8,d1d8,h7h9,f9f8,h9h8,f8f7,h8h5
 268厩焚伤马|3nka3/4a4/8R/4R4/9/9/9/3ppp3/9/4K4 w|i7d7,d9b8,d7d8,b8d9,e0d0,f2g2,d8d9,e9d9,e6e2
 276堵塞要路|3k1ab2/4a1RCr/4b3n/2p1N4/4N4/4P4/5p3/9/3pr4/5K3 w|e6c7,d9e9,e5f7,e8f7,g8b8,e7c9,b8b9,g9e7,h8d8
-277敛手削地|1nb1kab1r/3Ra4/3cc1n2/C1N1p1pR1/9/3N1p3/4Pp3/4C4/4r4/5K3 w|c6b8,i9i8,a6g6,g9i7,h6h8,i8h8,e2e6,g7e6,g6g9
+277敛手削地|1nb1kab1r/3Ra4/3cc1n2/C1N1p1pR1/9/3N1p3/4Pp3/4C3B/4r2p1/5K3 w|c6b8,i9i8,a6g6,g9i7,h6h8,i8h8,e2e6,g7e6,g6g9
 279神龙现首|3a1k3/4a4/9/c7c/9/2C4N1/6P2/5A3/5r1p1/4K4 w|c4c9,f9f8,h4g6,f8f7,c9c8,e8d7,c8i8,a6a0,g6h8
 281闭窟捉兔|C3kab1r/2C1a4/b1n5c/1N7/9/9/9/9/2pc1p3/4K4 w|c8c9,c7b9,b6d7,e9d9,d7b8,d9e9,c9c7,b9d8,a9d9
 283朝野从容|4kr3/4a2R1/3ab3b/9/6P2/9/4r4/1R2C4/5p2c/3K5 w|b2b9,e8d9,h8d8,d7e8,e2b2,f1e1,b9d9,e8d9,b2b9
@@ -206,7 +206,7 @@
 189入幕之宾|2bak3C/2C1aP2n/2n5N/9/7N1/9/9/1r6B/5p2r/3RK4 w|f8f9,e9f9,h5g7,f9e9,i7g8,e9f9,g8e7,i8g7,d0d9
 189入幕之宾|2bak3C/2C1aP2n/2n5N/9/7N1/9/9/1r6B/5p2r/3RK4 w|f8f9,e9f9,h5g7,f9e9,i7g8,e9f9,g8e7,f9e9,g7f9,i8g9,e7g8
 196送往迎来|6RNr/5k3/4ba3/9/9/9/9/2R1p4/3pAr3/4K4 w|c2c8,f7e8,g9g1,f8f9,g1f1,f9e9,e1f0,i9h9,f1d1,h9h5,d1d8
-213下车伏谒|R2aka3/3n3P1/2C1b4/5R3/2p3p2/9/9/5p3/4r3r/5K3 w|c7c9,d9e8,f6f9,e9f9,c9c8,f9f8,h8g8,f8f7,a9f9,e8f9,c8c7
+213下车伏谒|R2akab2/3n3P1/2C1b4/5R3/2p3p2/9/9/5p3/4r3r/5K3 w|c7c9,d9e8,f6f9,e9f9,c9c8,f9f8,h8g8,f8f7,a9f9,e8f9,c8c7
 214阻住行程|r2aka3/7rC/1R2b4/3N5/9/9/9/p7B/5pp2/4K4 w|d6c8,h8c8,b7e7,f9e8,i8c8,a2b2,e7a7,a9c9,a7g7,e9f9,g7g9
 226凫落鱼网|1n1ck3C/2PPa1R2/5a3/9/8N/9/9/3n5/4p2R1/5K3 w|g8g9,e8f9,d8e8,e9e8,g9g8,e8e7,i5g6,e7d7,g8d8,b9d8,i9d9
 245济济多士|9/9/5k3/4P4/9/2c3p2/9/5A3/4C4/4K4 w|e1f1,c4f4,f2e1,f4e4,e0f0,e4d4,e1f2,d4f4,f1f4,g4f4,f2e1
@@ -316,7 +316,7 @@
 222晚鸟争枝|r4Rb2/4k2C1/4b4/9/1N7/1r6R/9/4n4/3p1p3/4K3C w|b5c7,e8d8,i4d4,b4d4,c7e8,d8d7,i0i7,e7g5,e8f6,d7e7,f6g8,e7d7,f9f7,g9e7,f7e7
 228良将安边|2bk1a3/4a4/9/p1P6/3NC4/4Pp3/P5n2/4B3N/4Ar3/1RBAK2cr w|d5c7,d9d8,b0b8,d8d7,c6d6,d7e7,c7e6,e7f7,b8b7,e8d7,b7d7,c9e7,d7e7,f7f8,e7g7
 229镇压远庭|2bak1b2/3Ra4/2N6/2p6/5R3/2C6/9/9/1r1pA4/4KA1rc w|c4e4,e8d7,f5e5,e9f9,d8f8,f9f8,c7d9,f8f9,e5f5,f9e9,d9e7,d7e8,e7g8,e9d9,f5d5
-234六国攻秦|2b1kaR2/3Ra2n1/1n2b4/5N3/2p3p2/1NB3C2/9/4B4/1r1p1r3/c3Kc3 w|f6g8,f1f8,g9f9,e8f9,g4e4,f9e8,d8e8,e9d9,e8e9,d9d8,b4c6,d8d7,e9d9,b7d8,c6e5
+234六国攻秦|2b1kaR2/3Ra2n1/1n2b4/5N3/2p3p2/1NB3C2/9/4B4/1r1p1r3/c3KC3 w|f6g8,f1f8,g9f9,e8f9,g4e4,f9e8,d8e8,e9d9,e8e9,d9d8,b4c6,d8d7,e9d9,b7d8,c6e5
 235威镇四海|2b2k3/1R2a1P2/3a5/4p1N2/6b2/9/3nP4/4C1C2/3rAp3/c1nAK4 w|g8f8,f9e9,e2e6,g5e7,f8e8,d7e8,b8e8,e9d9,e8e9,d9d8,e9d9,d8d9,g6f8,d9d8,g2g8
 290得失有变|4ka3/4a4/9/9/5R3/4pp3/9/9/4A4/3AK4 w|e1f0,f4g4,e0e1,g4f4,f5f6,f4g4,f6d6,g4f4,e1d1,f4g4,d6b6,e8d9,b6e6,f9e8,e6e4
 301殒命宁亲|2ba1k3/3Pa4/4b4/4pP1C1/9/9/9/1r2B4/3pp4/2B2K1R1 w|f6f7,e8f7,h6f6,f7e8,f6f8,f9e9,h0h9,e8f9,f8i8,e7g9,h9g9,d9e8,i8i9,e8f7,i9f9
@@ -394,7 +394,7 @@
 356骅骝争路|3aka3/1R1N5/1c2b4/1Np1p1p2/6n2/C6R1/2P1P4/2n1C4/4Ap2r/r2AK4 w|d8f7,b7f7,b6c8,e9e8,h4h8,f7f8,c8e7,e8e9,e7c8,e9e8,c8d6,e8e9,a4e4,g5e4,e2e4,f9e8,h8h9,f8f9,d6c8
 121进攻退守|3ak4/3naP1CR/9/P8/9/9/9/1rp1B4/4p4/3K5 w|i8i9,e8f9,h8h9,f9e8,h9h0,e8f9,h0g0,b2b0,g0b0,c2c1,b0b9,d9e8,f8e8,e9e8,i9i8,e8e7,i8d8,c1d1,d8d1,e1d1,d0d1
 126士马如云|Nr2kc3/4a3n/2R3n2/4RN3/9/9/7C1/9/3p1pr2/4K4 w|e6e8,g7e8,f6d7,e9d9,h3d3,e8d6,d7f8,d6e8,c7d7,d9e9,d3e3,e8f6,d7e7,f6e8,e7e8,e9d9,e8b8,d9e9,f8e6,e9d9,b8d8
-133兵马出塞|2bak3r/3Ra4/9/6P2/7n1/2R3BN1/9/2n1C4/1r7/c3K3C w|d8e8,e9f9,e8e9,f9f8,c4c8,f8f7,g6f6,h5f6,c8f8,f7f8,h4g6,f8f7,e9f9,i9f9,g6h8,f7f8,i0i8,f6g8,h8g6,f8f7,g6e5
+133兵马出塞|2bak3r/3Ra4/4b4/6P2/7n1/2R3BN1/9/2n1C4/1r7/c3K3C w|d8e8,e9f9,e8e9,f9f8,c4c8,f8f7,g6f6,h5f6,c8f8,f7f8,h4g6,f8f7,e9f9,i9f9,g6h8,f7f8,i0i8,f6g8,h8g6,f8f7,g6e5
 191菱叶穿萍|2ba1k3/2P6/1n1a5/4C1N1R/1n5Cr/9/9/3p5/4p4/3K5 w|g6e7,d9e8,i6f6,f9e9,e7g8,e9d9,f6f9,e8f9,h5h9,f9e8,g8e9,e8f9,e9f7,f9e8,c8d8,b7d8,f7e9,e8f9,e9d7,f9e8,d7b8
 195行监坐守|3ak1b2/1P7/4ba3/5R1N1/3r5/9/4c4/2r1B2R1/4A4/4KA3 w|h6f7,e9f9,f7g9,f9e9,g9f7,e9f9,h2h9,f9f8,h9h8,f8f9,f7h6,f9e9,h6g8,e9e8,f6c6,c2c6,g8f6,e8e9,h8h9
 195行监坐守|3ak1b2/1P7/4ba3/5R1N1/3r5/9/4c4/2r1B2R1/4A4/4KA3 w|h6f7,e9f9,f7g9,f9e9,g9f7,e9f9,h2h9,f9f8,h9h8,f8f9,f7h6,f9e9,h6g8,e9e8,f6c6,d5h5,g8f6,e8e9,f6d7,e9f9,c6f6
@@ -454,7 +454,6 @@
 339用兵最精|2ba5/4a4/1P1k5/R7N/C8/6B2/9/2n1B4/5pr2/4K3c w|b7c7,d7e7,a6e6,e7f7,i6h8,f7f8,a5a8,e8f7,c7c8,d9e8,h8g6,f8f9,a8a9,e8d9,g6e7,f9f8,e7d9,f8f9,e6e9,f9f8,e9e7,f8f9,e7f7,f9e9,d9c7,c9e7,c8c9
 352翻江扰海|1rC2k3/9/n1R6/9/4N4/9/R3c4/4C4/4rn3/3K5 w|c7f7,f9e9,f7e7,e9f9,e7e9,f9e9,e5f7,e9f9,f7h8,f9f8,h8g6,f8f9,g6e7,f9f8,e7d9,f8f7,a3a7,e3e7,a7e7
 352翻江扰海|1rC2k3/9/n1R6/9/4N4/9/R3c4/4C4/4rn3/3K5 w|c7f7,f9e9,f7e7,e9f9,e7e9,f9e9,e5f7,e9f9,f7h8,f9f8,h8g6,f8f9,g6e7,f9f8,e7d9,e3e9,a3f3,f8e8,d9c7,e8e7,c7d5,e7e8,d5f6,e8e7,f3e3,e7f7,e2f2
-358倒转干戈|2b2k3/C3P4/1P2b4/p8/9/9/P7r/c3K4/3C1pp2/3R4c w|a8a9,c9a7,d1d9,a7c9,d0i0,i3i0,d9d0,c9a7,d0f0,f1f0,b7b8,i0i2,e2e1,i2d2,b8b9,d2d9,a9d9,a2g2,d9d8,g2g9,d8a8,g9b9,a8a6,b9b6,a3a4,b6e6,e8d8,a7c5
 175播弄造化|3a1kbn1/4P4/1c2n1r2/4p4/9/CC5pp/9/9/r1p1p4/3K3RR w|h0f0,g7f7,b4f4,f7g7,f4g4,g7f7,a4f4,f7g7,f4h4,g7f7,g4f4,f7g7,f4i4,g7f7,h4f4,f7g7,f4b4,g7f7,i4f4,f7g7,f4c4,g7f7,f0f7,b7f7,b4b9,d9e8,c4c9,f9f8,i0i8
 215遇水叠桥|3ak1r2/4aP3/4b4/7N1/2b6/5C1R1/4p1p2/1cn6/1C1r5/c3K4 w|f8f9,g9f9,h6g8,f9f8,h4h9,e8f9,h9f9,e9e8,f9f8,e8e9,f8d8,e9f9,d8d9,d1d9,b1f1,g3f3,f4e4,f3g3,g8f6,g3f3,f6h5,f3g3,h5g7,f9f8,g7f5,g3f3,f5h4,f3g3,h4f3
 348莺慵蝶懒|3a1a3/9/3k5/2P6/3P5/3N2C1C/9/1c3p3/4p4/3n1K3 w|d5d6,d7e7,d4f5,e7e8,f5g7,e8e9,i4i9,f9e8,g4e4,e8f7,d6e6,d9e8,g7h9

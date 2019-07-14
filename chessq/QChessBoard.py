@@ -18,8 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, time
 
-#from pubsub import pub
-
 from PyQt5 import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -65,9 +63,14 @@ class QChessBoard(QWidget):
         for name in ['k', 'a', 'b', 'r', 'n', 'c', 'p']:
             self.pieces_img[name] = QPixmap(':images/{}.png'.format(name))
             
+        self.setAutoFillBackground(True)
+        
+        p = self.palette()
+        p.setColor(self.backgroundRole(), QColor(40, 40, 40))
+        self.setPalette(p)
+        
         #self.setBackgroundRole(QPalette.Base)
-        #self.setAutoFillBackground(True)
-        self.setStyleSheet("background-color:grey;")
+        #self.setStyleSheet("background-color:black;")
  
         self.start_x = 0
         self.start_y = 0

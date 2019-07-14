@@ -126,7 +126,7 @@ class GameKeeper():
 class TimerMessageBox(QMessageBox):
     def __init__(self, text, timeout=2):
         super().__init__()
-        #self.setWindowTitle("wait")
+        self.setWindowTitle("ChessQ")
         self.time_to_wait = timeout
         self.setText(text)
         self.setStandardButtons(QMessageBox.NoButton)
@@ -169,6 +169,8 @@ class EngineThread(QThread):
                 elif output[0] == 'dead':
                     #print(win_dict[self.board.move_side])
                     self.checkmate_signal.emit()
+            else:
+                time.sleep(0.1)            
                     
 #-----------------------------------------------------#
 class MainWindow(QMainWindow):
@@ -178,6 +180,7 @@ class MainWindow(QMainWindow):
 
         self.app = app
         self.setWindowTitle(APP_NAME)
+        self.setWindowIcon(QIcon('ChessQ.ico'))
        
         self.board = ChessBoard()
        
@@ -189,18 +192,18 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.boardView)
         self.boardView.try_move_signal.connect(self.onTryMove)
 
-        self.bookView = QChessBookWidget(self)
+        self.historyView = QMoveHistoryWidget(self)
         #self.engineView = QChessEngineWidget(self)
 
         self.endBookView = QEndBookWidget(self)
         #self.endBookView.setVisible(True)
         #self.endBookView.book_view.clicked.connect(self.onSelectGameIndex)
 
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.bookView)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.historyView)
         self.addDockWidget(Qt.RightDockWidgetArea, self.endBookView)
         #self.addDockWidget(Qt.RightDockWidgetArea, self.engineView)
 
-        self.bookView.raise_()
+        #self.historyView.raise_()
 
         self.resize(800, 700)
         self.center()
@@ -210,7 +213,7 @@ class MainWindow(QMainWindow):
         self.app.loadConfig()
         self.app.loadEngine()
         
-        #self.loadGameBook('gamebooks\\梦入神机')
+        self.loadEndGameBook('gamebooks\\适情雅趣360.eglib')
    
     def center(self):
         screen = QDesktopWidget().screenGeometry()
@@ -245,22 +248,22 @@ class MainWindow(QMainWindow):
     
     def onPrevGame(self):
         index = self.keeper.prev_game()
-        print(index)
+        #print(index)
         self.onRestart()
     
     def onNextGame(self):
         index = self.keeper.next_game()
-        print(index)
+        #print(index)
         self.onRestart()
     
     def onPrevNewGame(self):
         index = self.keeper.prev_new()
-        print(index)
+        #print(index)
         self.onRestart()
     
     def onNextNewGame(self):
         index = self.keeper.next_new()
-        print(index)
+        #print(index)
         self.onRestart()
         
     def startGameIndex(self, index):
@@ -273,6 +276,7 @@ class MainWindow(QMainWindow):
         self.boardView.text = title
         self.boardView.init_board(fen)
         self.endBookView.select(self.keeper.index)
+        self.historyView.clear()
         
         self.best_moves = {}
         if best_moves:
@@ -289,7 +293,7 @@ class MainWindow(QMainWindow):
         if engine:
             engine.go_from(self.board.to_fen())
         
-        print("挑战:", title)
+        #print("挑战:", title)
         self.boardView.update()
         
     def onEditBoard(self):
@@ -319,13 +323,14 @@ class MainWindow(QMainWindow):
         
         move = self.board.move(move_from, move_to)
         
-        print(move.to_chinese())
+        #print(move.to_chinese())
         
         fen = move.board.to_fen()
         move_iccs = move.to_iccs()        
         
+        good = False
         if (fen in self.best_moves) and (move_iccs == self.best_moves[fen]) and (self.board.move_side == ChessSide.RED): 
-            print("GOOD")
+            good = True
         
         #engine = self.bind_engines[self.board.move_side]
         #if engine:
@@ -335,6 +340,7 @@ class MainWindow(QMainWindow):
         #这一行必须有,否则引擎不能工作
         move.for_ucci(ChessSide.next_side(move.board.move_side), self.move_history)
         self.move_history.append(move)
+        self.historyView.newMove(move, len(self.move_history), good)
         self.board.next_turn()
         
         if self.board.is_checkmate():
@@ -354,8 +360,8 @@ class MainWindow(QMainWindow):
 
         self.last_checked = self.board.is_checked()
         if self.last_checked:
-            print(u"将军！")
-            
+            #print(u"将军！")
+            pass
         engine = self.bind_engines[self.board.move_side]
         if engine:
             fen_done = self.board.to_fen()
@@ -363,13 +369,16 @@ class MainWindow(QMainWindow):
                 #time.sleep(0.5)
                 engine.preset_best_move(self.best_moves[fen_done])
             else:
-                print(move)
+                #print(move)
                 engine.go_from(move.to_ucci_fen())
 
         return True
     
     def waitMoveDone(self):
         pass
+    
+    def onCheckHistory(self):
+        self.historyView.showGoodMoves(True)
         
     def onUndoMove(self):
         pass
@@ -439,6 +448,8 @@ class MainWindow(QMainWindow):
         #self.editBoardAct = QAction(
         #    "局面修改", self, statusTip="编辑局面", triggered=self.onEditBoard)
 
+        self.checkHistoryAct = QAction(
+            "历史提示", self, statusTip="历史提示", triggered=self.onCheckHistory)
         self.undoMoveAct = QAction(
             "悔棋", self, statusTip="悔棋", triggered=self.onUndoMove)
         
@@ -493,8 +504,9 @@ class MainWindow(QMainWindow):
         self.gameToolbar.addAction(self.prevNewGameAct)
         self.gameToolbar.addAction(self.nextNewGameAct)
         
-        self.gameToolbar.addAction(self.restartAct)
+        self.gameToolbar.addAction(self.checkHistoryAct)
         self.gameToolbar.addAction(self.undoMoveAct)
+        self.gameToolbar.addAction(self.restartAct)
         
         self.showToolbar = self.addToolBar("Show")
         self.showToolbar.addWidget(self.flipBoardBox)

@@ -27,8 +27,7 @@ from PyQt5.QtWidgets import *
 
 #-----------------------------------------------------#
 
-
-class QChessBookWidget(QDockWidget):
+class QMoveHistoryWidget(QDockWidget):
     def __init__(self, parent):
         super().__init__("棋谱", parent)
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
@@ -37,11 +36,11 @@ class QChessBookWidget(QDockWidget):
 
         self.step_view = QTreeWidget()
         self.step_view.setColumnCount(1)
-        self.step_view.setHeaderLabels(["序号", "行棋", "注释", "变招"])
+        self.step_view.setHeaderLabels(["序号", "行棋", "注释"])
         self.step_view.setColumnWidth(0, 60)
         self.step_view.setColumnWidth(1, 80)
         self.step_view.setColumnWidth(2, 30)
-        self.step_view.setColumnWidth(3, 120)
+        #self.step_view.setColumnWidth(3, 120)
 
         self.step_view.itemSelectionChanged.connect(self.onSelectStep)
 
@@ -65,44 +64,46 @@ class QChessBookWidget(QDockWidget):
         return QSize(350, 500)
 
     def onSelectStep(self):
-
+        
         items = self.step_view.selectedItems()
 
         if len(items) != 1:
             return
 
         item = items[0]
-        move_log = item.data(0, Qt.UserRole)
+        move = item.data(0, Qt.UserRole)
 
-        pub.sendMessage("game_reshow", move_log=move_log)
-
-    def append_move(self, move_log):
+    def newMove(self, move, num, good):
         item = QTreeWidgetItem(self.step_view)
 
-        step_no = move_log.step_no
-        if step_no % 2 == 1:
-            hint = "{0}.".format((step_no + 1) / 2)
+        if num % 2 == 1:
+            hint = "{0}.".format((num + 1) // 2)
             item.setText(0, hint)
 
-        item.setText(1, move_log.move_str_zh)
-        item.setData(0, Qt.UserRole, move_log)
+        item.setText(1, move.to_chinese())
+        item.setData(0, Qt.UserRole, move)
+        item.setData(1, Qt.UserRole, good)
 
-    def append_move_step(self, step_node, index):
-        item = QTreeWidgetItem(self.step_view)
-
-        if index % 2 == 1:
-            item.setText(0, str((index + 1) / 2))
-
-        item.setText(1, step_node.name)
-        item.setData(0, Qt.UserRole, step_node)
-
-        if step_node.comment != None:
-            item.setText(2, "*")
-            #self.comment_view.setText(step_node.comment)
+    def get_all_items(self):
+        """Returns all QTreeWidgetItems in the given QTreeWidget."""
+        all_items = []
+        for i in range(self.step_view.topLevelItemCount()):
+            top_item = self.step_view.topLevelItem(i)
+            all_items.append(top_item)
+        return all_items
 
     def clear(self):
         self.step_view.clear()
-
+    
+    def showGoodMoves(self, yes):
+        items = self.get_all_items()
+        for it in items:
+            good = it.data(1, Qt.UserRole)
+            if good:
+                it.setText(2, 'Yes')
+            else:
+                it.setText(2, '')
+            
     def undo_move(self, steps):
         while steps > 1:
             count = self.step_view.topLevelItemCount()
@@ -133,7 +134,6 @@ class QChessBookWidget(QDockWidget):
 
 
 #-----------------------------------------------------#
-
 
 class QChessEngineWidget(QDockWidget):
     def __init__(self, parent):
@@ -176,7 +176,7 @@ class QChessEngineWidget(QDockWidget):
                 #fen_after_move = board.get_fen()
                 #step_node = StepNode(move_str, fen_before_move,  fen_after_move, (move_from, move_to), comments)
             else:
-                print("info move error", move_from, move_to)
+                #print("info move error", move_from, move_to)
                 total_move_str += "engine error on move"
                 break
         self.step_view.addItem(total_move_str)
@@ -227,7 +227,7 @@ class QEndBookWidget(QDockWidget):
     def select(self, index):
         i = self.bookModel.index(index,0);
         self.bookView.setCurrentIndex(i)
-        
+ 
     def showGameBook(self, books):
         self.bookModel.clear()
         
