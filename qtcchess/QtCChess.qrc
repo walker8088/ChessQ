@@ -1,0 +1,18 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>../images/board.png</file>
+    <file>../images/a.png</file>
+    <file>../images/b.png</file>
+    <file>../images/c.png</file>
+    <file>../images/k.png</file>
+    <file>../images/n.png</file>
+    <file>../images/p.png</file>
+    <file>../images/r.png</file>
+    <file>../images/over.png</file>
+    <file>../images/done.png</file>
+    <file>../images/select.png</file>
+    <file>../images/step.png</file>
+    <file>../images/point.png</file>
+    
+</qresource>
+</RCC>

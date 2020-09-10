@@ -1,0 +1,5 @@
+('c:\\myapps\\anaconda3\\lib\\site-packages\\cchess-0.3-py3.7.egg',
+ None,
+ {'*.py', '*.pyd', 'EGG-INFO', '*.pyc', '*.pyw', '*.cp37-win_amd64.pyd'},
+ 'DATA',
+ [])

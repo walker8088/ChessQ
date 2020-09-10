@@ -437,7 +437,7 @@
 188取义成仁|3k5/4RP3/4b4/3P5/5rb2/9/3p5/3AK4/4A4/9 w|e1d0,f5f1,d2e1,f1f4,e1d2,f4e4,e2f2,d3d2,f2f1,d2e2,f1f0,e4f4,f0e0,f4i4,d0e1,i4i1,e0d0,e2e1,e8d8,d9d8,d6d7,d8d9,d7d8,d9e9,d8d9
 224状元归去|r1N3b2/1c1kaP3/3ab4/8N/9/9/9/4BA3/5p3/C1R1K1Rrc w|c0c8,d8d9,a0d0,d9e9,c8e8,d7e8,f8e8,e9d9,c9d7,b8d8,d7b6,d8b8,b6d5,b8d8,d5e7,d8b8,e7d5,b8d8,d5c3,d8b8,c3d1,b8d8,d1f0,d8b8,g0g9
 237雷震八荒|R1C6/2P6/b2ak4/6P2/6b2/6B2/9/c4K2n/9/2rR2r2 w|d0d7,e7e8,c8d8,e8e9,d7e7,g5e7,c9c1,a2a9,c1e1,e7g5,g4e2,g5e7,e2c0,e7g5,c0e2,g5e7,e2g0,e7g5,g0i2,a9b9,g6f6,e9f9,f6f7,b9b8,d8d9
-320号立中天|C1b6/1RCka4/5a3/p1p1p4/2b6/9/P1P1P4/9/c3p1p2/5Kc2 w|b8b9,c5e7,c8c7,e7c5,a9a8,d8d7,c7c8,d7e7,b9b7,e8d7,c8c7,d7e8,c7c5,e8d7,c5c4,e6e5,b7b5,c6c5,b5c5,d7e8,c5e5,e7d7,e5d5,d7e7,c4e4
+320号立中天|C1b6/1RCka4/5a3/p1p1p4/2b6/9/P1P1P4/9/c3p2p1/5K1c1 w|b8b9,c5e7,c8c7,e7c5,a9a8,d8d7,c7c8,d7e7,b9b7,e8d7,c8c7,d7e8,c7c5,e8d7,c5c4,e6e5,b7b5,c6c5,b5c5,d7e8,c5e5,e7d7,e5d5,d7e7,c4e4
 102四将出塞|C3ka3/4a2r1/N3b4/3C5/3N5/9/9/5p3/4p4/5K3 w|d6d9,e9d9,a7b9,e7c9,b9c7,d9d8,c7e6,d8d7,e6c5,d7d8,c5b7,d8d7,b7c9,d7d8,c9b7,d8d9,d5c7,d9e9,b7c9,e8d9,c9d7,e9e8,d7c5,e8f8,c5e6,f8f7,a9a7
 125四面旋绕|C2R4c/5k3/b2a1N2b/2R6/9/9/9/4p4/3nr1p2/c4K2C w|c6c8,d7e8,c8e8,f8e8,f7d6,e8e7,d6f5,e7e8,f5g7,e8e7,g7f9,e7e8,d9d8,e8e9,i0i9,i7g9,f9g7,g9i7,d8e8,e9d9,g7f9,i7g9,f9d8,g9i7,d8b9,a0a9,b9c7
 187虏马饮江|3ak1b2/2P2P3/3ac2P1/9/1R7/C5N2/9/3p1p1C1/4p2r1/5K3 w|a4a9,d9e8,b5b9,e8d9,b9b8,d9e8,c8c9,e8d9,f8f9,e9f9,c9d9,e7e9,d9e9,f9e9,b8b9,e9e8,g4f6,e8d8,h2d2,d7e8,b9b8,d8d9,f6d7
@@ -462,7 +462,6 @@
 205淮阴战绩|2ba1k3/4a1R2/9/1cp2N3/1Nb6/3n2P2/4C4/3AB4/3r1p1n1/2R1KAr1c w|g8g9,f9f8,f6h7,f8f7,g9g7,f7f8,g7g8,f8f7,h7g5,f7e7,g8g7,e8f7,g5e6,e7d7,g7f7,c9e7,f7e7,c5e7,e3d3,d4b5,e6d4,b5d6,d4c6,d6c4,d3d1,c4d6,c6b8,d7d8,c0c8,d8d7,c8e8
 315赤壁鏖战|c2a1k3/3Pa4/n3b4/5P1CP/6b2/1rB6/9/9/3pp4/2B2K1R1 w|f6f7,e8f7,h6f6,f7e8,f6f8,e8f7,h0h9,f9f8,h9h7,d9e8,h7h8,f8f9,d8e8
 315赤壁鏖战|c2a1k3/3Pa4/n3b4/5P1CP/6b2/1rB6/9/9/3pp4/2B2K1R1 w|f6f7,e8f7,h6f6,f7e8,f6f8,f9e9,h0h9,e8f9,f8i8,e7g9,h9g9,d9e8,i8i9,e8f7,g9g5,f9e8,g5g9,e8f9,d8e8,e9e8,g9g8,e8e7,i9i7,f7e8,g8g7,e8f7,g7f7,e7e8,f7f8,e8e7,i6h6
-321三仙炼丹|3k5/4P4/9/9/9/9/9/9/1pppA2C1/4KA3 w|e1d2,b1a1,f0e1,a1b1,e0f0,b1a1,f0f1,a1b1,f1f2,b1a1,f2e2,a1b1,e1f2,b1a1,d2e1,a1b1,h1h4,b1b0,h4d4,b0c0,e2d2,c0b0,d4d8,b0c0,e8e9,d9e9,d8h8,c0d0,h8h0,d1e1,f2e1,c1c0
 193烧牛凿城|3akaP2/9/1R7/2pNp4/1C4b2/9/9/3NB4/3p1p3/4Kcr1c w|b7e7,d9e8,d6c8,e9d9,e7d7,e8d7,b5d5,d7e8,d5d1,e8d7,d2b3,d7e8,b3d4,e8d7,d4c6,d7e8,c6d4,e8d7,d4e6,d7e8,e6d4,e8d7,d4b5,d7e8,b5d6,e8d7,d6f7,d7e8,c8d6,e8d7,d6b5,d7e8,b5c7
 308管仲随马|C3kanr1/9/1R2ca2c/9/1N7/9/9/9/4p2p1/5K3 w|b7b9,e9e8,b9b8,e8e9,b5c7,e7d7,c7b9,d7d9,b9d8,e9e8,d8b7,e8e7,a9a7,d9d7,b7d6,d7d9,b8b7,d9d7,b7d7,e7e8,d7f7,e8d8,f7d7,d8e8,d7i7,e8d8,i7d7,d8e8,d7g7,e8d8,d6b7,d8e8,b7c9
 346异途同归|C3kab2/4a4/n3c4/p2Np1p2/1R4P2/1R7/P3P4/1r2B4/2Cp1p3/c1nAK1N2 w|b5b9,e8d9,b9b8,d9e8,c1c9,a7b9,c9c1,b9d8,b8b9,e8d9,b9d9,e9d9,b4b9

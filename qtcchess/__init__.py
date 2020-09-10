@@ -1,0 +1,1 @@
+from .QtCChessMain import *
