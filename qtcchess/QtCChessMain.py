@@ -161,6 +161,7 @@ class EngineThread(QThread):
             self.engine.handle_msg_once()
             if not self.engine.move_queue.empty():
                 output = self.engine.move_queue.get()
+                #print(output)
                 if output[0] == 'best_move':
                     p_from, p_to = output[1]["move"]
                     self.best_move_signal.emit(p_from, p_to)
@@ -168,7 +169,7 @@ class EngineThread(QThread):
                 elif output[0] == 'dead':
                     print(output)
                     self.checkmate_signal.emit()
-                elif output[0] == 'infomove':
+                elif output[0] == 'info_move':
                     self.move_probe_signal.emit(output[1])
                     #print(output)
             else:
@@ -309,7 +310,7 @@ class MainWindow(QMainWindow):
     def onEngineBestMove(self, move_from, move_to):
         pass
     
-    def onCheckmate(self): #, dead_side):
+    def onCheckmate(self):
         msgbox = TimerMessageBox("电脑认输, 挑战成功!, 再下一城!")
         msgbox.exec_()
         self.keeper.curr_game_done()
