@@ -16,16 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-from cchess import *
-
 from PyQt5 import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
+from cchess import *
+
 #-----------------------------------------------------#
 
 class QMoveHistoryWidget(QDockWidget):
+    move_select_signal = pyqtSignal(Move, bool)
+
     def __init__(self, parent):
         super().__init__("棋谱", parent)
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
@@ -41,7 +43,7 @@ class QMoveHistoryWidget(QDockWidget):
         #self.step_view.setColumnWidth(3, 120)
 
         self.step_view.itemSelectionChanged.connect(self.onSelectStep)
-
+        
         self.comment_view = QTextEdit()
         self.comment_view.readOnly = True
 
@@ -54,7 +56,9 @@ class QMoveHistoryWidget(QDockWidget):
         splitter.setStretchFactor(1, 30)
 
         self.setWidget(splitter)
-
+        
+        self.last_item = None
+        
     def sizeHint(self):
         return QSize(350, 500)
 
@@ -69,8 +73,10 @@ class QMoveHistoryWidget(QDockWidget):
             return
 
         item = items[0]
+        is_last = True if item == self.last_item else False
         move = item.data(0, Qt.UserRole)
-
+        self.move_select_signal.emit(move, is_last)
+        
     def newMove(self, move, num, good):
         item = QTreeWidgetItem(self.step_view)
 
@@ -81,6 +87,8 @@ class QMoveHistoryWidget(QDockWidget):
         item.setText(1, move.to_chinese())
         item.setData(0, Qt.UserRole, move)
         item.setData(1, Qt.UserRole, good)
+        
+        self.last_item = item
 
     def get_all_items(self):
         """Returns all QTreeWidgetItems in the given QTreeWidget."""
@@ -92,6 +100,7 @@ class QMoveHistoryWidget(QDockWidget):
 
     def clear(self):
         self.step_view.clear()
+        self.last_item = None
     
     def showGoodMoves(self, yes):
         items = self.get_all_items()
@@ -132,7 +141,7 @@ class QMoveHistoryWidget(QDockWidget):
 
 
 #-----------------------------------------------------#
-'''
+
 class QChessEngineWidget(QDockWidget):
     def __init__(self, parent):
         super().__init__("引擎分析", parent)
@@ -143,40 +152,30 @@ class QChessEngineWidget(QDockWidget):
 
         self.setWidget(self.step_view)
 
-    def show_profile(self, yes):
-        if yes:
-            pub.subscribe(self.on_game_started, "game_started")
-            pub.subscribe(self.on_game_step_moved, "game_step_moved")
-            pub.subscribe(self.on_engine_move_info, "engine_move_info")
-        else:
-            self.step_view.clear()
-            pub.unsubscribe(self.on_game_started, "game_started")
-            pub.unsubscribe(self.on_game_step_moved, "game_step_moved")
-            pub.unsubscribe(self.on_engine_move_info, "engine_move_info")
-
     def on_game_started(self, move_side):
         self.step_view.clear()
 
     def on_game_step_moved(self, move_log):
         self.step_view.clear()
 
-    def on_engine_move_info(self, move_info):
+    def on_engine_move_info(self, fen, move_info):
 
-        board = Chessboard()
-        board.init_board(move_info["fen_str"])
-        total_move_str = move_info["depth"] + " " + move_info['score']
-        for (move_from, move_to) in move_info["moves"]:
-            if board.can_make_move(move_from, move_to):
-                total_move_str += " " + board.std_move_to_chinese_move(
-                    move_from, move_to)
-                board.make_step_move(move_from, move_to)
-                board.turn_side()
-                #fen_after_move = board.get_fen()
-                #step_node = StepNode(move_str, fen_before_move,  fen_after_move, (move_from, move_to), comments)
+        board = ChessBoard()
+        board.from_fen(fen)
+        #board.from_fen(move_info["fen"])
+        #strs = board.dump_board()
+        moves = []
+        for (move_from, move_to) in move_info["move"]:
+            #print(move_from, move_to)
+            if board.is_valid_move(move_from, move_to):
+                move = board.move(move_from, move_to)
+                moves.append(move.to_chinese())
+                board.next_turn()
             else:
                 #print("info move error", move_from, move_to)
-                total_move_str += "engine error on move"
+                moves.append("engine_error_on_move")
                 break
+        total_move_str = f"{move_info['score']} {' '.join(moves)}."        
         self.step_view.addItem(total_move_str)
 
     def append_info(self, info):
@@ -191,9 +190,11 @@ class QChessEngineWidget(QDockWidget):
     def minimumSizeHint(self):
         return QSize(450, 500)
 
-'''
+
 #------------------------------------------------------------------#
 class QEndBookWidget(QDockWidget):
+    book_select_signal = pyqtSignal(int)
+
     def __init__(self, parent):
         super().__init__("棋局列表", parent)
         self.setAllowedAreas(Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea)
@@ -210,6 +211,8 @@ class QEndBookWidget(QDockWidget):
         self.bookView.setAlternatingRowColors(True) 
 
         self.bookView.clicked.connect(self.onSelectIndex)
+        self.bookView.activated.connect(self.onSelectIndex) 
+        #self.bookView.indexesMoved.connect(self.onIndexMoved)
 
         self.setWidget(self.bookView)
 
@@ -219,13 +222,24 @@ class QEndBookWidget(QDockWidget):
     def minimumSizeHint(self):
         return QSize(150, 500)
 
+    def onIndexMoved(self, index):
+        print('index moved', index)
+    
     def onSelectIndex(self, index):
-        self.parent.startGameIndex(index.row())
+        #self.parent.startGameIndex(index.row())
+        self.book_select_signal.emit(index.row())
         
     def select(self, index):
         i = self.bookModel.index(index,0);
         self.bookView.setCurrentIndex(i)
- 
+     
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        copyAction = menu.addAction("Copy Fen String")
+        action = menu.exec_(self.mapToGlobal(event.pos()))
+        if action == copyAction:
+            qApp.clipboard().setText(self.parent.board.to_fen())
+            
     def showGameBook(self, books):
         self.bookModel.clear()
         

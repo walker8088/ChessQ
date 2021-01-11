@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 '''
 Copyright (C) 2014  walker li <walker8088@gmail.com>
 
@@ -27,10 +28,11 @@ from PyQt5.QtGui import *
 
 from cchess import *
 
+from .utils import *
+
 from .QtCChessBoard import *
 from .QtCChessWidgets import *
-
-#from .QChessboardEditDlg import *
+from .QChessBoardEditDlg import *
 
 #-----------------------------------------------------#
 
@@ -40,119 +42,14 @@ APP_NAME = "ChessQ 中国象棋"
 APP_CONFIG_FILE = "ChessQ.cfg"
 
 #-----------------------------------------------------#
-class GameKeeper():
-    def __init__(self, file):
-
-        self.file = os.path.splitext(file)[0]
-        self.games = []
-        self.games_done = []
-        self.file_eglib = self.file + '.eglib'
-        self.file_eplib = self.file + '.eplib'
-        self.index = -1
-        
-    def load(self):
-
-        with open(self.file_eglib, 'rb') as f:
-            lines = f.readlines()
-
-        for line in lines:
-            it = line.strip().decode('utf-8')
-            if it.startswith('#') or  it== '':
-                continue
-            its = it.split('|')
-            if len(its) == 3:
-                self.games.append((its[0], its[1], its[2]))
-            else:
-                self.games.append((its[0], its[1], None))
-            
-        self.games_done = bytearray(b'0' * len(self.games))
-
-        if os.path.isfile(self.file + '.eplib'):
-            with open(self.file_eplib, 'rb') as f:
-                done_array = bytearray(open(self.file_eplib, 'rb').read())
-            for i, it in enumerate(done_array):
-                if i >= len(self.games):
-                    break
-                if it == ord('1'):
-                    self.games_done[i] = it
-        self.next_new() 
-        self.save_done()
-    
-    def all(self):
-        return zip(self.games, self.games_done)
-        
-    def curr_game(self):
-        if self.index >= 0:
-            return self.games[self.index]
-        else:
-            return None
-            
-    def curr_game_done(self):
-        self.games_done[self.index] = ord('1')
-        self.save_done()
-
-    def save_done(self):
-        open(self.file_eplib, 'wb').write(bytes(self.games_done))
-    
-    def next_new(self):
-        for i in range(self.index+1, len(self.games)):
-            if self.games_done[i] == ord('0'):
-                self.index = i
-                return self.index
-        self.index = 0
-        return self.index 
-    
-    def prev_new(self):
-        for i in range(self.index-1, -1, -1):
-            if self.games_done[i] == ord('0'):
-                self.index = i
-                return self.index
-        self.index = 0
-        return self.index 
-    
-    def next_game(self):
-        self.index = self.index + 1
-        if self.index >= len(self.games):
-            self.index = len(self.games) - 1
-        return self.index
-    
-    def prev_game(self):
-        self.index = self.index - 1
-        if self.index <= 0:
-            self.index = 0
-        return self.index
-
-#-----------------------------------------------------#
-class TimerMessageBox(QMessageBox):
-    def __init__(self, text, timeout=2):
-        super().__init__()
-        self.setWindowTitle("ChessQ")
-        self.time_to_wait = timeout
-        self.setText(text)
-        self.setStandardButtons(QMessageBox.NoButton)
-        self.timer = QtCore.QTimer(self)
-        self.timer.setInterval(1000)
-        self.timer.timeout.connect(self.changeContent)
-        self.timer.start()
-
-    def changeContent(self):
-        self.time_to_wait -= 1
-        if self.time_to_wait <= 0:
-            self.close()
-
-    def closeEvent(self, event):
-        self.timer.stop()
-        event.accept()
-
-#-----------------------------------------------------#
+'''
 class EngineThread(QThread):
-    best_move_signal = pyqtSignal(tuple, tuple)
-    move_probe_signal = pyqtSignal(dict)
-    checkmate_signal = pyqtSignal()
-    
-    def __init__(self, engine):
-        QThread.__init__(self)
+    def __init__(self, parent, engine, engine_id):
+        super().__init__(self)
+        
         self.engine = engine
+        self.engine_id = engine_id
+        
         self.stoped = True
         
     def run(self):
@@ -164,99 +61,197 @@ class EngineThread(QThread):
                 #print(output)
                 if output[0] == 'best_move':
                     p_from, p_to = output[1]["move"]
-                    self.best_move_signal.emit(p_from, p_to)
-           
-                elif output[0] == 'dead':
-                    print(output)
-                    self.checkmate_signal.emit()
+                    self.parent.on_best_move(self.engine_id, p_from, p_to)
+                #被将死不能从引擎发出, 因为引擎探测深度太深
+                #elif output[0] == 'dead':
+                #    print(output)
+                #    self.checkmate_signal.emit(self.engined_id)
                 elif output[0] == 'info_move':
-                    self.move_probe_signal.emit(output[1])
+                    self.parent.on_move_probe(self.engine_id, output[1])
                     #print(output)
             else:
                 time.sleep(0.1)            
+'''
                     
 #-----------------------------------------------------#
-class MainWindow(QMainWindow):
-    def __init__(self, app):
-        super(MainWindow, self).__init__()
-        self.setAttribute(Qt.WA_DeleteOnClose)
-
-        self.app = app
-        self.setWindowTitle(APP_NAME)
-        self.setWindowIcon(QIcon('ChessQ.ico'))
-       
-        self.board = ChessBoard()
-       
-        self.createActions()
-        #self.createMenus()
-        self.createToolBars()
+class EngineManager(QObject):
+    best_move_signal = pyqtSignal(int, tuple, tuple)
+    move_probe_signal = pyqtSignal(int, dict)
+    
+    def __init__(self, parent):
+        super(QObject, self).__init__()
         
-        self.boardView = QChessBoard(self.board)
-        self.setCentralWidget(self.boardView)
-        self.boardView.try_move_signal.connect(self.onTryMove)
-
-        self.historyView = QMoveHistoryWidget(self)
-        #self.engineView = QChessEngineWidget(self)
-
-        self.endBookView = QEndBookWidget(self)
-        #self.endBookView.setVisible(True)
-        #self.endBookView.book_view.clicked.connect(self.onSelectGameIndex)
-
-        self.addDockWidget(Qt.LeftDockWidgetArea, self.historyView)
-        self.addDockWidget(Qt.RightDockWidgetArea, self.endBookView)
-        #self.addDockWidget(Qt.RightDockWidgetArea, self.engineView)
-
-        self.resize(800, 700)
-        self.center()
+        self.parent = parent
+        self.engines = []
+        self.engine_fens = []
         
-        self.readSettings()
+        self.stoped = True
         
-        self.app.loadConfig()
-        self.app.loadEngine()
+    def load_engine_from_config(self, config):
+        engine = UcciEngine(config["ucci_engine"]["name"])
+        if engine.load(config["ucci_engine"]["path"]):
+            self.engines.append(engine)
+        else:
+            QMessageBox.warning(None, APP_NAME, f'引擎加载失败：{config["ucci_engine"]["path"]}')
+    
+    def go_from(self, engine_id, fen):
+        if (engine_id < 0) or (engine_id >= len(self.engines)):
+            return False
+        self.engines[engine_id].go_from(fen)
         
-        self.last_checked = False
+    def start(self):
+        self.thread = ThreadRunner(self)
+        self.thread.start()
+        
+    def stop(self):    
+        self.stoped = True
+        
+    def run(self):
+        self.stoped = False 
+        while not self.stoped:
+            self.run_once()
+            time.sleep(0.1)
+            
+    def run_once(self):
+        for engine_id, engine in enumerate(self.engines): 
+            engine.handle_msg_once()
+            while not engine.move_queue.empty():
+                output = engine.move_queue.get()
+                action = output['action']
+                if action == 'best_move':
+                    p_from, p_to = output["move"]
+                    self.best_move_signal.emit(engine_id, p_from, p_to)
+                #被将死不能从引擎发出, 因为引擎探测深度太深
+                #elif output[0] == 'dead':
+                #    print(output)
+                #    self.checkmate_signal.emit(self.engined_id)
+                elif action == 'info_move':
+                    self.move_probe_signal.emit(engine_id, output)
+                    #print(output)
+#-----------------------------------------------------#
+class GameManager(QObject):
+    def __init__(self, parent):
+        super().__init__()
+        
+        self.parent = parent
+    
+    def init_ui(self):
+        pass
+        
+    def free_ui(self):
+        pass
+    
+    def on_new(self):
+        pass
+    
+    def onRestart(self):
+        
+        self.parent.boardView.text = ''
+          
+        self.parent.last_move = None
+        self.parent.move_history = []
+        
+        self.parent.historyView.clear()
+        self.parent.engineView.clear()
+        
+        self.parent.boardView.update()
+        
+    def on_move(self, move):
+        self.parent.board.next_turn()
+        self.parent.engineView.clear()
+        self.parent.idle_engine_working()
+        
+    def on_win(self, side):
+        pass
+        
+#-----------------------------------------------------#
+class EndBookManager(GameManager):
+    def __init__(self, parent):
+        super().__init__(parent)
+        
+        self.loadEndBookAct = QAction(
+            "加载杀局库", self.parent, statusTip="加载杀局库", triggered=self.onLoadEndBook)
+        
+        self.nextGameAct = QAction(
+            "后一局", self.parent, statusTip="后一局", triggered=self.onNextGame)
+        
+        self.prevGameAct = QAction(
+            "前一局", self.parent, statusTip="前一局", triggered=self.onPrevGame)
+        
+        self.nextNewGameAct = QAction(
+            "后一新局", self.parent, statusTip="后一新局", triggered=self.onNextNewGame)
+        
+        self.prevNewGameAct = QAction(
+            "前一新局", self.parent, statusTip="前一新局", triggered=self.onPrevNewGame)
+        
+        self.gameToolbar = self.parent.addToolBar("Game")
+        self.gameToolbar.hide()
+        self.gameToolbar.addAction(self.loadEndBookAct)
+        self.gameToolbar.addAction(self.prevGameAct)
+        self.gameToolbar.addAction(self.nextGameAct)
+        self.gameToolbar.addAction(self.prevNewGameAct)
+        self.gameToolbar.addAction(self.nextNewGameAct)
+        
+        #self.gameToolbar.addAction(self.checkHistoryAct)
+        self.parent.endBookView.book_select_signal.connect(self.startGameIndex)
         
         try:
-            self.loadEndGameBook(self.book_file)
+            self.loadEndBook(self.parent.book_file)
         except:
             pass
-            
-    def center(self):
-        screen = QDesktopWidget().screenGeometry()
-        size = self.geometry()
-        self.move((screen.width() - size.width()) / 2,
-                  (screen.height() - size.height()) / 2)
-
-    def closeEvent(self, event):
-        self.writeSettings()
+        
+    def init_ui(self):
+        self.gameToolbar.show()
+        self.parent.endBookView.show()
+        self.parent.boardView.init_board('')
+        
+    def free_ui(self):
+        self.gameToolbar.hide()
+        self.parent.endBookView.hide()
+        
+    def on_new(self):
+        self.onRestart()
     
-    def onLoadEndGameBook(self):
+    def on_win(self, win_side):
+        if win_side == ChessSide.BLACK:
+            msgbox = TimerMessageBox("挑战失败, 重新再来!")
+            msgbox.exec_()
+            self.onRestart() 
+        else:
+            self.parent.eRedBox.setChecked(False)
+            msgbox = TimerMessageBox("挑战成功!, 再下一城!")
+            msgbox.exec_()
+            self.keeper.curr_game_done()
+            
+            games = self.keeper.all()
+            self.parent.endBookView.showGameBook(games)
+            
+            self.keeper.next_new()
+            self.onRestart()
+           
+    def onLoadEndBook(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog 
-        fileName, _ = QFileDialog.getOpenFileName(self,"打开残局文件", "","残局文件(*.eglib);;All Files (*)", options=options)
-        self.loadEndGameBook(fileName)
+        fileName, _ = QFileDialog.getOpenFileName(self.parent, "打开残局文件", "","残局文件(*.eglib);;All Files (*)", options=options)
+        if fileName:
+            self.loadEndBook(fileName)
         
-    def loadEndGameBook(self, file_name):    
+    def loadEndBook(self, file_name):
+    
         self.keeper = GameKeeper(file_name)
         self.keeper.load()
         
         games = self.keeper.all()
         
-        self.endBookView.showGameBook(games)
+        index = self.keeper.next_new()
         
-        self.book_file = file_name
-        self.writeSettings()
-        
-        self.bind_engines = [None, None, self.app.engine]
-        
-        self.engineThread = EngineThread(self.app.engine)  
-        self.engineThread.best_move_signal.connect(self.onTryMove)
-        self.engineThread.checkmate_signal.connect(self.onCheckmate)
-        self.engineThread.move_probe_signal.connect(self.onMoveProbe)
-        self.engineThread.start()
-        
+        self.parent.endBookView.showGameBook(games)
+        self.parent.book_file = file_name
+        self.parent.writeSettings()
+       
         self.onRestart()
-    
+
+        
     def onPrevGame(self):
         index = self.keeper.prev_game()
         self.onRestart()
@@ -272,19 +267,21 @@ class MainWindow(QMainWindow):
     def onNextNewGame(self):
         index = self.keeper.next_new()
         self.onRestart()
-        
+    
     def startGameIndex(self, index):
         self.keeper.index = index
         self.onRestart()
         
     def onRestart(self):
+        super().onRestart()
+
         title, fen, best_moves = self.keeper.curr_game()
         
-        self.boardView.text = title
-        self.boardView.init_board(fen)
-        self.endBookView.select(self.keeper.index)
-        self.historyView.clear()
+        self.parent.boardView.text = title
+        self.parent.boardView.init_board(fen)
+        self.parent.endBookView.select(self.keeper.index)
         
+        '''
         self.best_moves = {}
         if best_moves:
             tmp_board = self.board.copy()
@@ -292,112 +289,203 @@ class MainWindow(QMainWindow):
                 self.best_moves[tmp_board.to_fen()] = move
                 tmp_board.move_iccs(move)
                 tmp_board.next_turn()
-            
-        self.last_moved = None
-        self.move_history = []
+        '''    
+        self.parent.last_move = None
+        self.parent.move_history = []
+        self.parent.idle_engine_working()
+        self.parent.boardView.update()
         
-        engine = self.bind_engines[self.board.move_side.value]
-        if engine:
-            engine.go_from(self.board.to_fen())
+#-----------------------------------------------------#
+class FreeGameManager(GameManager):
+    def __init__(self, parent):
+        super().__init__(parent)
         
-        self.boardView.update()
+    def on_new(self):
+        self.onRestart()
         
-    def onEditBoard(self):
-
-        dlg = QChessboardEditDialog(self)
-        new_fen = dlg.editBoard(self.board.get_fen())
+    def onRestart(self):
+        super().onRestart()
+        self.parent.boardView.init_board(FULL_INIT_FEN)
         
-    def onEngineBestMove(self, move_from, move_to):
+        self.parent.idle_engine_working()
+        
+        
+    def on_win(self, side):
         pass
     
-    def onCheckmate(self):
-        msgbox = TimerMessageBox("电脑认输, 挑战成功!, 再下一城!")
-        msgbox.exec_()
-        self.keeper.curr_game_done()
-        games = self.keeper.all()
-        self.endBookView.showGameBook(games)
-        self.keeper.next_new()
-        self.onRestart()
+#-----------------------------------------------------#
+class MainWindow(QMainWindow):
+    def __init__(self, app):
+        super(MainWindow, self).__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
-    def onMoveProbe(self, info):
-        print('onMoveProbe', info)
+        self.app = app
+        self.setWindowTitle(APP_NAME)
+        self.setWindowIcon(QIcon('ChessQ.ico'))
+       
+        self.board = ChessBoard()
+        self.game_manager = None
         
-    def onTryMove(self, move_from, move_to):
+        self.createActions()
+        self.createMenus()
+        self.createToolBars()
+        
+        self.boardView = QChessBoard(self.board)
+        self.setCentralWidget(self.boardView)
+        self.boardView.try_move_signal.connect(self.onTryMove)
+        
+        self.historyView = QMoveHistoryWidget(self)
+        self.historyView.move_select_signal.connect(self.onSelectHistoryMove)
+        self.engineView = QChessEngineWidget(self)
+
+        self.endBookView = QEndBookWidget(self)
+        #self.endBookView.setVisible(True)
+        #self.endBookView.book_view.clicked.connect(self.onSelectGameIndex)
+
+        self.addDockWidget(Qt.RightDockWidgetArea, self.historyView)
+        self.addDockWidget(Qt.LeftDockWidgetArea, self.endBookView)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.engineView)
+
+        self.resize(800, 700)
+        self.center()
+        
+        self.readSettings()
+        
+        self.app.loadConfig()
+        
+        self.engine_manager = EngineManager(self)
+        self.engine_manager.load_engine_from_config(self.app.config)
+        
+        self.engine_manager.best_move_signal.connect(self.onEngineBestMove)
+        self.engine_manager.move_probe_signal.connect(self.onEngineMoveProbe)
+        
+        self.engine_working = False
+        self.last_move = None
+        
+        self.bind_engines = [None, None, 0]
+        
+        self.engine_manager.start()
+        
+        self.game_managers = {
+            'free_game': FreeGameManager(self),
+            'end_book': EndBookManager(self),
+        }
+        
+        self.onDoEndBook()
+        
+        #self.move_history = []
+        
+    def center(self):
+        screen = QDesktopWidget().screenGeometry()
+        size = self.geometry()
+        self.move((screen.width() - size.width()) / 2,
+                  (screen.height() - size.height()) / 2)
+
+    def closeEvent(self, event):
+        self.writeSettings()
+    
+    def onDoFreeGame(self):
+
+        if self.game_manager:
+            if self.game_manager == self.game_managers['free_game']: 
+                return
+            else:    
+                self.game_manager.free_ui()
+        
+        self.game_manager = self.game_managers['free_game']
+        self.game_manager.init_ui()
+        self.game_manager.on_new()
+         
+    def onDoOpenBook(self):
+        pass
+    
+    def onDoEndBook(self):
+
+        if self.game_manager:
+            if self.game_manager == self.game_managers['end_book']: 
+                return
+            else:    
+                self.game_manager.free_ui()
+
+        self.game_manager = self.game_managers['end_book']
+        self.game_manager.init_ui()
+        self.game_manager.on_new()
+        
+    def onRestartGame(self):
+        self.game_manager.onRestart()
+        
+    def onEditBoard(self):
+        dlg = QChessboardEditDialog(self)
+        new_fen = dlg.editBoard(self.board.to_fen())
+            
+    def idle_engine_working(self):
+        working = False
+        if self.engine_working:
+            working = True
+        elif self.bind_engines[ChessSide.RED] is not None:
+            working = True
+        elif self.bind_engines[ChessSide.BLACK] is not None:
+            working = True    
+        if working:    
+            if self.last_move:
+                self.engine_manager.go_from(0, self.last_move.to_ucci_fen())
+            else:
+                self.engine_manager.go_from(0, self.board.to_fen())
+                
+    def onSelectHistoryMove(self, move, is_last):
+        self.boardView.set_view_only(not is_last)
+        self.boardView.init_board(move.board.to_fen())
+        self.boardView.show_move(move.p_from, move.p_to)
+        self.boardView.init_board(move.board_done.to_fen())
+        
+    def onEngineMoveProbe(self, engine_id, info):
+        if not self.engine_working:
+            return
+            
+        fen = self.board.to_fen()
+        self.engineView.on_engine_move_info(fen, info)
+    
+    def onEngineBestMove(self, engine_id, move_from, move_to):
+        #print("onEngineBestMove", engine_id, move_from, move_to)
         
         if not self.board.is_valid_move(move_from, move_to):
-            self.boardView.clear_pickup()
+            print(f'error move: {move_from} {move_to}')
             return False
 
-        checked = self.board.is_checked_move(move_from, move_to)
-        if checked:
-            if self.last_checked:
-                msg = "    必须应将!    "
-            else:
-                msg = "    不能送将!    "
-             
-            msgbox = TimerMessageBox(msg, timeout = 1)
-            msgbox.exec_()
-                
-            return False
-
-        self.boardView.showMove(move_from, move_to)
+        piece = self.board.get_piece(move_from)
+        if self.bind_engines[piece.side.value] == engine_id: 
+            self.onTryMove(move_from, move_to)
         
+    def onTryMove(self, move_from, move_to):
+    
+        self.boardView.show_move(move_from, move_to)
         move = self.board.move(move_from, move_to)
-        #move.checked = True if check_count > 0 else False
         
         fen = move.board.to_fen()
         move_iccs = move.to_iccs()        
         
         good = False
-        if (fen in self.best_moves) and (move_iccs == self.best_moves[fen]) and (self.board.move_side == ChessSide.RED): 
-            good = True
-        
-        #engine = self.bind_engines[self.board.move_side.value]
-        #if engine:
-        #    engine.stop_thinking()
+        #if (fen in self.best_moves) and (move_iccs == self.best_moves[fen]) and (self.board.move_side == ChessSide.RED): 
+        #    good = True
         
         #这一行必须有,否则引擎不能工作
         move.for_ucci(move.board.move_side.opposite(), self.move_history)
+        
         self.move_history.append(move)
         self.historyView.newMove(move, len(self.move_history), good)
-        
-        if self.board.is_win():
-            if self.board.move_side == ChessSide.BLACK:
-                msgbox = TimerMessageBox("挑战失败, 重新再来!")
-                msgbox.exec_()
-                self.onRestart() 
-            else:
-                msgbox = TimerMessageBox("挑战成功!, 再下一城!")
-                msgbox.exec_()
-                self.keeper.curr_game_done()
-                games = self.keeper.all()
-                self.endBookView.showGameBook(games)
-                self.keeper.next_new()
-                self.onRestart()
-            return True
-        
-        self.last_checked = self.board.is_checking()
-        if self.last_checked:
+        self.last_move = move
+
+        if self.board.is_checking():
             self.statusBar().showMessage("将军!")
         else:
             self.statusBar().showMessage('')
         
-        self.board.next_turn()
-        
-        engine = self.bind_engines[self.board.move_side.value]
-        if engine:
-            fen_done = self.board.to_fen()
-            if fen_done in self.best_moves:
-                #time.sleep(0.5)
-                engine.preset_best_move(self.best_moves[fen_done])
-            else:
-                #print(move)
-                engine.go_from(move.to_ucci_fen())
-
+        if self.board.is_win():
+            self.game_manager.on_win(self.board.move_side)
+        else:
+            self.game_manager.on_move(move)
+            
         return True
-    
-    def waitMoveDone(self):
-        pass
     
     def onCheckHistory(self):
         self.historyView.showGoodMoves(True)
@@ -412,29 +500,24 @@ class MainWindow(QMainWindow):
         self.boardView.setMirrorBoard(state)
     
     def onRedBoxChanged(self, state):
-        self.bind_engines[ChessSide.RED] = self.app.engine if state == Qt.Checked else None
+        self.__check_state(state == Qt.Checked, ChessSide.RED)
         
-        self.engine_drive(ChessSide.RED)
-
     def onBlackBoxChanged(self, state):
-        self.bind_engines[ChessSide.BLACK] = self.app.engine if state == Qt.Checked else None
-            
-        self.engine_drive(ChessSide.BLACK)
-
-    def engine_drive(self, side):
+        self.__check_state(state == Qt.Checked, ChessSide.BLACK)
         
-        if self.board.move_side != side:
-            return
-            
-        move = self.move_history[-1] if len(self.move_history) > 0 else None
-        if move is not None:
-            engine = self.bind_engines[side]
-            if engine is not None:
-                engine.go_from(move.to_ucci_fen())
-                
+    def __check_state(self, yes, move_side):    
+        self.bind_engines[move_side] = 0 if yes else None
+        self.idle_engine_working()
+        #engine_id = self.bind_engines[move_side]
+        #if (engine_id is None) or (self.board.move_side.value != move_side):
+        #    return 
+        
     def onEngineInfoBoxChanged(self, state):
-        self.engineView.show_profile(state == Qt.Checked)
-
+        self.engine_working = (state == Qt.Checked)
+        if self.engine_working is True:
+            self.engineView.clear()
+        self.idle_engine_working()
+        
     def about(self):
         QMessageBox.about(
             self, "关于ChessQ",
@@ -442,44 +525,31 @@ class MainWindow(QMainWindow):
         )
 
     def createActions(self):
-        #self.loadBookAct = QAction(
-        #    "对局打谱", self, statusTip="新对局", triggered=self.onLoadBook)
-
-        #self.execriseGameAct = QAction(
-        #    "对局练习", self, statusTip="新对局", triggered=self.onExecriseGame)
-
-        self.loadEndGameBookAct = QAction(
-            "打开残局谱", self, statusTip="杀局练习", triggered=self.onLoadEndGameBook)
         
-        self.nextGameAct = QAction(
-            "后一局", self, statusTip="后一局", triggered=self.onNextGame)
-        
-        self.prevGameAct = QAction(
-            "前一局", self, statusTip="前一局", triggered=self.onPrevGame)
-        
-        self.nextNewGameAct = QAction(
-            "后一新局", self, statusTip="后一新局", triggered=self.onNextNewGame)
-        
-        self.prevNewGameAct = QAction(
-            "前一新局", self, statusTip="前一新局", triggered=self.onPrevNewGame)
+        self.doFreeGameAct = QAction(
+            "自由练习", self, statusTip="练习", triggered=self.onDoFreeGame)
 
-        #self.startGameAct = QAction(u"起始局面", self,
-        #        statusTip=u"开始局面", triggered=self.onStartGame)
-
-        #self.editBoardAct = QAction(
-        #    "局面修改", self, statusTip="编辑局面", triggered=self.onEditBoard)
-
+        self.doOpenBookAct = QAction(
+            "对局打谱", self, statusTip="打谱", triggered=self.onDoOpenBook)
+        
+        self.doEndBookAct = QAction(
+            "杀局练习", self, statusTip="杀局练习", triggered=self.onDoEndBook)
+        
+        
+        self.restartAct = QAction(
+            "重新开始", self, statusTip="重新开始", triggered=self.onRestartGame)
+        
+        self.editBoardAct = QAction(
+            "局面修改", self, statusTip="编辑局面", triggered=self.onEditBoard)
+        
+        '''
         self.checkHistoryAct = QAction(
             "历史提示", self, statusTip="历史提示", triggered=self.onCheckHistory)
+        '''
+        
         self.undoMoveAct = QAction(
             "悔棋", self, statusTip="悔棋", triggered=self.onUndoMove)
         
-        self.restartAct = QAction(
-            "重新开始", self, statusTip="重新开始", triggered=self.onRestart)
- 
-        #self.stopGameAct = QAction(u"结束", self,
-        #        statusTip=u"结束对局", triggered=self.onStopGame)
-
         self.exitAct = QAction(
             "结束退出",
             self,
@@ -506,30 +576,23 @@ class MainWindow(QMainWindow):
 
     def createToolBars(self):
 
+        self.gameToolbar = self.addToolBar("Board")
+        self.gameToolbar.addAction(self.doFreeGameAct)
+        self.gameToolbar.addAction(self.doOpenBookAct)
+        self.gameToolbar.addAction(self.doEndBookAct)
+        
         #self.boardToolbar = self.addToolBar("Board")
-        #self.boardToolbar.addAction(self.loadBookAct)
-        #self.boardToolbar.addAction(self.execriseGameAct)
-        #self.boardToolbar.addAction(self.checkingGameAct)
-        #self.boardToolbar.addAction(self.editBoardAct)
-
+        
         self.flipBoardBox = QCheckBox("上下反转")
         self.flipBoardBox.stateChanged.connect(self.onFlipBoardChanged)
         
         self.mirrorBoardBox = QCheckBox("水平镜像")
         self.mirrorBoardBox.stateChanged.connect(self.onMirrorBoardChanged)
-
-        self.gameToolbar = self.addToolBar("Game")
-        self.gameToolbar.addAction(self.loadEndGameBookAct)
-        self.gameToolbar.addAction(self.prevGameAct)
-        self.gameToolbar.addAction(self.nextGameAct)
-        self.gameToolbar.addAction(self.prevNewGameAct)
-        self.gameToolbar.addAction(self.nextNewGameAct)
-        
-        self.gameToolbar.addAction(self.checkHistoryAct)
-        self.gameToolbar.addAction(self.undoMoveAct)
-        self.gameToolbar.addAction(self.restartAct)
         
         self.showToolbar = self.addToolBar("Show")
+        self.showToolbar.addAction(self.restartAct)
+        self.showToolbar.addAction(self.undoMoveAct)
+        self.showToolbar.addAction(self.editBoardAct)
         self.showToolbar.addWidget(self.flipBoardBox)
         self.showToolbar.addWidget(self.mirrorBoardBox)
 

@@ -22,7 +22,7 @@ from PyQt5.QtGui import *
 
 from cchess import *
 
-from .QChessboardEditor import *
+from .QtCChessBoard import *
 
 #-----------------------------------------------------#
 
@@ -34,10 +34,10 @@ class QChessboardEditDialog(QDialog):
 
         vbox = QVBoxLayout()
 
-        self.boardEdit = QChessboardEditWidget(self)
+        self.boardEdit = QChessBoardEditWidget()
         vbox.addWidget(self.boardEdit)
 
-        self.fenEdit = QtGui.QLineEdit()
+        self.fenEdit = QLineEdit()
         vbox.addWidget(self.fenEdit)
 
         initBtn = QPushButton("初始棋盘", self)
@@ -46,8 +46,8 @@ class QChessboardEditDialog(QDialog):
         initBtn.clicked.connect(self.onInitBoard)
         clearBtn.clicked.connect(self.onClearBoard)
 
-        okBtn = QtGui.QPushButton("完成", self)
-        cancelBtn = QtGui.QPushButton("取消", self)
+        okBtn = QPushButton("完成", self)
+        cancelBtn = QPushButton("取消", self)
         #self.quit.setGeometry(62, 40, 75, 30)
 
         hbox = QHBoxLayout()
@@ -55,36 +55,36 @@ class QChessboardEditDialog(QDialog):
         hbox.addWidget(initBtn)
         hbox.addWidget(clearBtn)
         hbox.addWidget(okBtn)
-        hbox.addWidget(cancelBtn)
+        #hbox.addWidget(cancelBtn)
 
         vbox.addLayout(hbox)
 
         self.setLayout(vbox)
-
-        self.connect(okBtn, QtCore.SIGNAL("clicked()"), self,
-                     QtCore.SLOT("close()"))
-
-        self.connect(cancelBtn, QtCore.SIGNAL("clicked()"), self,
-                     QtCore.SLOT("close()"))
+        
+        self.fenEdit.textEdited.connect(self.onTextEdited)
+        okBtn.clicked.connect(self.accept)
+        #cancelBtn.clicked.connect(self.onClose)
 
     def onInitBoard(self):
-        self.boardEdit.init_board()
-        self.fenEdit.setText(self.boardEdit.get_fen())
-
+        self.boardEdit.init_board(FULL_INIT_FEN)
+        self.fenEdit.setText(self.boardEdit.to_fen())
+    
+    def onTextEdited(self, text):
+        self.boardEdit.init_board(text)
+        
     def update_fen(self):
-        self.fenEdit.setText(self.boardEdit.get_fen())
+        self.fenEdit.setText(self.boardEdit.to_fen())
 
     def onClearBoard(self):
-        self.boardEdit.clear()
-        self.fenEdit.setText(self.boardEdit.get_fen())
+        self.boardEdit.init_board('')
+        self.fenEdit.setText(self.boardEdit.to_fen())
 
     def editBoard(self, fen_str):
 
         self.fenEdit.setText(fen_str)
         self.boardEdit.init_board(fen_str)
 
-        self.exec_()  #== QDialog.Accepted :
-
-        return self.boardEdit.get_fen()
-        #else :
-        #    return fen_str
+        if self.exec_()  == QDialog.Accepted :
+            return self.boardEdit.to_fen()
+        else :
+            return None

@@ -30,7 +30,6 @@ class QChessApp(QApplication):
         super().__init__([])
         
         self.config = None
-        self.engine = None
         
         self.mainWin = MainWindow(self)
         self.mainWin.show()
@@ -45,13 +44,6 @@ class QChessApp(QApplication):
                 self.config = None
                 return
  
-    def loadEngine(self):
-        engine = UcciEngine(self.config["ucci_engine"]["name"])
-        if engine.load(self.config["ucci_engine"]["path"]):
-            self.engine = engine
-        else:
-            QMessageBox.warning(self, APP_NAME,
-                                "引擎加载失败：" + self.config["ucci_engine"]["path"])
         
 
 #-----------------------------------------------------#
