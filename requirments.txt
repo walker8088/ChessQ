@@ -1,4 +1,4 @@
-
-cchess>=0.6
+pyyaml
+cchess>=0.7
 pyqt5
 
