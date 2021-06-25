@@ -9,13 +9,13 @@ ChessQ是一个中国象棋程序。目前功能还很简单，目标是做个�
 - 杀局练习  
   可以打开杀局谱，逐个杀法练习，保存练习进度。 
 
-- 收录的杀法：	
+- 收录的杀法（已经按照步数难度从短到长排序）  	
   * 《基本杀法》
   * 《杀局谱》
   * 《梦入神机杀局》
   * 《适情雅趣360局》  
   
-- 支持UCCI引擎
+- 支持UCCI引擎  
   可以加载支持UCCI协议的引擎，目前测试过：
   * 象棋巫师的“eleeye”（象眼）引擎，
   * Harmless引擎（https://github.com/timebug/harmless）
@@ -24,6 +24,5 @@ ChessQ是一个中国象棋程序。目前功能还很简单，目标是做个�
 <img src="./doc/screenshot/main.png"/>
 
 
-ChessQ使用PyQT5编写，在windows下Python 3.7和PyQT 5.10 运行正常。
-
+ChessQ使用PyQT5编写，在windows下Python 3.7和PyQT 5.10 运行正常。  
 欢迎加入一起完善这个小小的玩具，有任何问题和建议，欢迎反馈。
