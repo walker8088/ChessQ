@@ -15,10 +15,11 @@ ChessQ是一个中国象棋程序。目前功能还很简单，目标是做个�
   * 《适情雅趣360局》  
   
 - 支持UCCI引擎
-  可以加载支持UCCI协议的引擎，目前可以跨平台支持象棋巫师的“eleeye”（象眼）引擎，“Harmless”引擎（https://github.com/timebug/harmless）
+  可以加载支持UCCI协议的引擎，目前测试过：
+  * 象棋巫师的“eleeye”（象眼）引擎，
+  * Harmless引擎（https://github.com/timebug/harmless）
   
-
-ChessQ使用PyQT5编写，在windows下Python 3.7和PyQT 5.10 运行正常。
+- ChessQ使用PyQT5编写，在windows下Python 3.7和PyQT 5.10 运行正常。
 
 # 界面截图
 <img src="./doc/screenshot/main.png"/>
