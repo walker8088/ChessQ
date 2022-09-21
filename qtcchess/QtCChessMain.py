@@ -41,43 +41,13 @@ BOOK, EXERCISE, KILLING = list(range(3))
 APP_NAME = "ChessQ 中国象棋"
 APP_CONFIG_FILE = "ChessQ.cfg"
 
-#-----------------------------------------------------#
-'''
-class EngineThread(QThread):
-    def __init__(self, parent, engine, engine_id):
-        super().__init__(self)
-        
-        self.engine = engine
-        self.engine_id = engine_id
-        
-        self.stoped = True
-        
-    def run(self):
-        self.stoped = False 
-        while not self.stoped:
-            self.engine.handle_msg_once()
-            if not self.engine.move_queue.empty():
-                output = self.engine.move_queue.get()
-                #print(output)
-                if output[0] == 'best_move':
-                    p_from, p_to = output[1]["move"]
-                    self.parent.on_best_move(self.engine_id, p_from, p_to)
-                #被将死不能从引擎发出, 因为引擎探测深度太深
-                #elif output[0] == 'dead':
-                #    print(output)
-                #    self.checkmate_signal.emit(self.engined_id)
-                elif output[0] == 'info_move':
-                    self.parent.on_move_probe(self.engine_id, output[1])
-                    #print(output)
-            else:
-                time.sleep(0.1)            
-'''
                     
 #-----------------------------------------------------#
 class EngineManager(QObject):
-    best_move_signal = pyqtSignal(int, tuple, tuple)
+    best_move_signal = pyqtSignal(int, tuple, tuple, dict)
     move_probe_signal = pyqtSignal(int, dict)
-    
+    checkmate_signal = pyqtSignal(int, dict)
+
     def __init__(self, parent):
         super(QObject, self).__init__()
         
@@ -120,14 +90,15 @@ class EngineManager(QObject):
                 action = output['action']
                 if action == 'best_move':
                     p_from, p_to = output["move"]
-                    self.best_move_signal.emit(engine_id, p_from, p_to)
-                #被将死不能从引擎发出, 因为引擎探测深度太深
-                #elif output[0] == 'dead':
-                #    print(output)
-                #    self.checkmate_signal.emit(self.engined_id)
+                    self.best_move_signal.emit(engine_id, p_from, p_to, output)
+                elif action == 'dead': #被将死
+                    self.checkmate_signal.emit(engine_id, output)
                 elif action == 'info_move':
                     self.move_probe_signal.emit(engine_id, output)
+                elif action == 'info':
                     #print(output)
+                    pass
+
 #-----------------------------------------------------#
 class GameManager(QObject):
     def __init__(self, parent):
@@ -159,7 +130,7 @@ class GameManager(QObject):
     def on_move(self, move):
         self.parent.board.next_turn()
         self.parent.engineView.clear()
-        self.parent.idle_engine_working()
+        self.parent.run_engine()
         
     def on_win(self, side):
         pass
@@ -213,7 +184,8 @@ class EndBookManager(GameManager):
         self.onRestart()
     
     def on_win(self, win_side):
-        if win_side == ChessSide.BLACK:
+        
+        if win_side == BLACK:
             msgbox = TimerMessageBox("挑战失败, 重新再来!")
             msgbox.exec_()
             self.onRestart() 
@@ -292,7 +264,7 @@ class EndBookManager(GameManager):
         '''    
         self.parent.last_move = None
         self.parent.move_history = []
-        self.parent.idle_engine_working()
+        self.parent.run_engine()
         self.parent.boardView.update()
         
 #-----------------------------------------------------#
@@ -307,7 +279,7 @@ class FreeGameManager(GameManager):
         super().onRestart()
         self.parent.boardView.init_board(FULL_INIT_FEN)
         
-        self.parent.idle_engine_working()
+        self.parent.run_engine()
         
         
     def on_win(self, side):
@@ -358,6 +330,7 @@ class MainWindow(QMainWindow):
         
         self.engine_manager.best_move_signal.connect(self.onEngineBestMove)
         self.engine_manager.move_probe_signal.connect(self.onEngineMoveProbe)
+        self.engine_manager.checkmate_signal.connect(self.onEngineCheckmate)
         
         self.engine_working = False
         self.last_move = None
@@ -410,6 +383,9 @@ class MainWindow(QMainWindow):
         self.game_manager = self.game_managers['end_book']
         self.game_manager.init_ui()
         self.game_manager.on_new()
+    
+    def onDoOnline(self):
+        pass
         
     def onRestartGame(self):
         self.game_manager.onRestart()
@@ -418,13 +394,13 @@ class MainWindow(QMainWindow):
         dlg = QChessboardEditDialog(self)
         new_fen = dlg.editBoard(self.board.to_fen())
             
-    def idle_engine_working(self):
+    def run_engine(self):
         working = False
         if self.engine_working:
             working = True
-        elif self.bind_engines[ChessSide.RED] is not None:
+        elif self.bind_engines[RED] is not None:
             working = True
-        elif self.bind_engines[ChessSide.BLACK] is not None:
+        elif self.bind_engines[BLACK] is not None:
             working = True    
         if working:    
             if self.last_move:
@@ -439,21 +415,30 @@ class MainWindow(QMainWindow):
         self.boardView.init_board(move.board_done.to_fen())
         
     def onEngineMoveProbe(self, engine_id, info):
+        
         if not self.engine_working:
-            return
-            
+            return    
+        
         fen = self.board.to_fen()
         self.engineView.on_engine_move_info(fen, info)
     
-    def onEngineBestMove(self, engine_id, move_from, move_to):
+    def onEngineCheckmate(self, engine_id, info):
+        #print(self.board.move_player)
+        win_side = self.board.move_player.next()
+        print("WIN:", win_side)
+        self.game_manager.on_win(win_side)
+            
+    def onEngineBestMove(self, engine_id, move_from, move_to, info):
         #print("onEngineBestMove", engine_id, move_from, move_to)
         
         if not self.board.is_valid_move(move_from, move_to):
             print(f'error move: {move_from} {move_to}')
             return False
-
+        
+        #print(self.board.move_player, self.board.move_player.next())
+        
         piece = self.board.get_piece(move_from)
-        if self.bind_engines[piece.side.value] == engine_id: 
+        if self.bind_engines[piece.color] == engine_id: 
             self.onTryMove(move_from, move_to)
         
     def onTryMove(self, move_from, move_to):
@@ -465,11 +450,11 @@ class MainWindow(QMainWindow):
         move_iccs = move.to_iccs()        
         
         good = False
-        #if (fen in self.best_moves) and (move_iccs == self.best_moves[fen]) and (self.board.move_side == ChessSide.RED): 
+        #if (fen in self.best_moves) and (move_iccs == self.best_moves[fen]) and (self.board.move_player == RED): 
         #    good = True
         
         #这一行必须有,否则引擎不能工作
-        move.for_ucci(move.board.move_side.opposite(), self.move_history)
+        move.for_ucci(move.board.move_player.opposite(), self.move_history)
         
         self.move_history.append(move)
         self.historyView.newMove(move, len(self.move_history), good)
@@ -481,7 +466,7 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage('')
         
         if self.board.is_win():
-            self.game_manager.on_win(self.board.move_side)
+            self.game_manager.on_win(self.board.move_player)
         else:
             self.game_manager.on_move(move)
             
@@ -500,23 +485,20 @@ class MainWindow(QMainWindow):
         self.boardView.setMirrorBoard(state)
     
     def onRedBoxChanged(self, state):
-        self.__check_state(state == Qt.Checked, ChessSide.RED)
+        self.__check_state(state == Qt.Checked, RED)
         
     def onBlackBoxChanged(self, state):
-        self.__check_state(state == Qt.Checked, ChessSide.BLACK)
+        self.__check_state(state == Qt.Checked, BLACK)
         
-    def __check_state(self, yes, move_side):    
-        self.bind_engines[move_side] = 0 if yes else None
-        self.idle_engine_working()
-        #engine_id = self.bind_engines[move_side]
-        #if (engine_id is None) or (self.board.move_side.value != move_side):
-        #    return 
+    def __check_state(self, yes, move_player):    
+        self.bind_engines[move_player] = 0 if yes else None
+        self.run_engine()
         
     def onEngineInfoBoxChanged(self, state):
         self.engine_working = (state == Qt.Checked)
         if self.engine_working is True:
             self.engineView.clear()
-        self.idle_engine_working()
+        self.run_engine()
         
     def about(self):
         QMessageBox.about(
@@ -535,6 +517,8 @@ class MainWindow(QMainWindow):
         self.doEndBookAct = QAction(
             "杀局练习", self, statusTip="杀局练习", triggered=self.onDoEndBook)
         
+        self.doOnlineAct = QAction(
+            "连线对弈", self, statusTip="连线", triggered=self.onDoOnline)
         
         self.restartAct = QAction(
             "重新开始", self, statusTip="重新开始", triggered=self.onRestartGame)
@@ -580,7 +564,7 @@ class MainWindow(QMainWindow):
         self.gameToolbar.addAction(self.doFreeGameAct)
         self.gameToolbar.addAction(self.doOpenBookAct)
         self.gameToolbar.addAction(self.doEndBookAct)
-        
+        self.gameToolbar.addAction(self.doOnlineAct)
         #self.boardToolbar = self.addToolBar("Board")
         
         self.flipBoardBox = QCheckBox("上下反转")
@@ -628,8 +612,8 @@ class MainWindow(QMainWindow):
         pos = settings.value('pos', QPoint(200, 50))
         size = settings.value('size', QSize(600, 600))
         self.book_file = settings.value('last_book_file', os.path.join('gamebooks','适情雅趣360.eglib'))
-        self.move(pos)
-        self.resize(size)
+        #self.move(pos)
+        #self.resize(size)
 
     def writeSettings(self):
 

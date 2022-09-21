@@ -129,7 +129,7 @@ class QChessBoardBase(QWidget):
         for piece in self._board.get_pieces():
             board_x, board_y = self.logic_to_board(piece.x, piece.y)
 
-            if piece.side == ChessSide.RED:
+            if piece.color == RED:
                 offset = 0
             else:
                 offset = 53
@@ -172,7 +172,7 @@ class QChessBoardBase(QWidget):
         
         piece = self._board.get_piece(key)
         
-        if piece and piece.side == self._board.move_side:
+        if piece and piece.color == self._board.move_player.color:
                 #pickup and clear last move
                 self.last_pickup = key
                 self.last_pickup_moves = list(self._board.create_piece_moves(key))
@@ -347,7 +347,7 @@ class QChessBoard(QWidget):
         for piece in self._board.get_pieces():
             board_x, board_y = self.logic_to_board(piece.x, piece.y)
 
-            if piece.side == ChessSide.RED:
+            if piece.color == RED:
                 offset = 0
             else:
                 offset = 53
@@ -370,7 +370,7 @@ class QChessBoard(QWidget):
         if len(self.move_steps_show) > 0:
             piece, step_point = self.move_steps_show.pop(0)
 
-            if piece.side == ChessSide.RED:
+            if piece.color == RED:
                 offset = 0
             else:
                 offset = 53
@@ -412,7 +412,7 @@ class QChessBoard(QWidget):
         
         piece = self._board.get_piece(key)
         
-        if piece and piece.side == self._board.move_side:
+        if piece and piece.color == self._board.move_player.color:
                 #pickup and clear last move
                 self.last_pickup = key
                 self.last_pickup_moves = list(self._board.create_piece_moves(key))
@@ -577,7 +577,7 @@ class QChessBoard(QChessBoardBase):
         if len(self.move_steps_show) > 0:
             piece, step_point = self.move_steps_show.pop(0)
 
-            if piece.side == ChessSide.RED:
+            if piece.color == RED:
                 offset = 0
             else:
                 offset = 53
@@ -619,7 +619,7 @@ class QChessBoard(QChessBoardBase):
         
         piece = self._board.get_piece(key)
         
-        if piece and piece.side == self._board.move_side:
+        if piece and piece.color == self._board.move_player.color:
                 #pickup and clear last move
                 self.last_pickup = key
                 self.last_pickup_moves = list(self._board.create_piece_moves(key))
